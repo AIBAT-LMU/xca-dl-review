@@ -1,0 +1,349 @@
+name: "QUADAS-2"
+version: "2.1"
+description: >
+  Quality Assessment of Diagnostic Accuracy Studies - Revised. Adapted for deep
+  learning in X-ray coronary angiography (XCA) systematic review. Structure follows
+  the published QUADAS-2 instrument (4 domains, signaling questions, per-domain risk
+  of bias and applicability). Guidance is operationalized for image/frame-level DL
+  development-and-validation studies: the unit of analysis may be patients OR images,
+  index-test blinding is assessed as absence of test-set leakage, and applicability
+  is judged against the review question — whether the model is developed and validated
+  in a way that reflects real-world XCA practice.
+sections:
+  - patient_selection
+  - index_test
+  - reference_standard
+  - flow_and_timing
+
+# Preamble descriptive fields (text fields filled before domain assessment)
+preamble_fields:
+  - id: "preamble_patients"
+    text: "Patients or images (setting, intended use of index test, presentation, prior testing; state the unit of analysis)"
+    field_type: "text"
+    required: true
+
+  - id: "preamble_index_test"
+    text: "Index test(s) — the deep learning model(s)"
+    field_type: "text"
+    required: true
+
+  - id: "preamble_reference_standard"
+    text: "Reference standard and target condition"
+    field_type: "text"
+    required: true
+
+items:
+  # ──────────────────────────────────────────────
+  # DOMAIN 1: PATIENT SELECTION
+  # ──────────────────────────────────────────────
+  - id: "1.desc"
+    text: "Describe methods of patient/image selection"
+    section: "patient_selection"
+    item_type: "descriptive"
+    guidance: "Free-text description of how patients/cases/images were selected for the study."
+    response_options: ["text"]
+
+  # Signaling Questions
+  - id: "1.1"
+    text: "Was a consecutive or random sample of patients/images enrolled?"
+    section: "patient_selection"
+    item_type: "signaling"
+    guidance: >
+      Unit of analysis may be patients OR images/frames, whichever the study uses.
+      Y: Consecutive or random sampling from clinical workflow (or all available
+      images from an unselected series). N: Convenience sample or cherry-picked
+      cases/frames. If multiple datasets are used, judge the primary evaluation
+      dataset(s) the main results rely on; a supplementary external/generalisation set
+      is not penalised here. Unclear: selection method not described, including when
+      a public/benchmark dataset is used and its original sampling is not documented by
+      the study.
+    response_options: ["yes", "no", "unclear"]
+
+  - id: "1.2"
+    text: "Was a case-control design avoided?"
+    section: "patient_selection"
+    item_type: "signaling"
+    guidance: >
+      Y: Cohort study, or images drawn from an unselected clinical series.
+      N: Artificially balanced case-control dataset (e.g. equal stenosis/normal by
+      design). If multiple datasets are used, judge the primary evaluation dataset(s)
+      the main results rely on; a supplementary external/generalisation set is not
+      penalised here. Unclear: design not stated.
+    response_options: ["yes", "no", "unclear"]
+
+  - id: "1.3"
+    text: "Did the study avoid inappropriate exclusions?"
+    section: "patient_selection"
+    item_type: "signaling"
+    guidance: >
+      Judge only INAPPROPRIATE exclusions — those that make the dataset easier than
+      clinical reality. Y: all eligible cases/images included, OR exclusions are
+      technically justified and would apply in clinical use (e.g. corrupted/
+      non-diagnostic acquisitions, wrong modality, duplicate frames). N: exclusions
+      that remove clinically real difficulty — dropping cases for poor image quality,
+      artifacts, motion, low contrast, ambiguous or difficult anatomy, or borderline
+      lesions — i.e. selecting for easy cases. If multiple datasets are used, judge the
+      primary evaluation dataset(s) the main results rely on; a supplementary external/
+      generalisation set is not penalised here. Unclear: exclusions not described,
+      including when a public/benchmark dataset is used and any exclusions applied by
+      its creators are not documented.
+    response_options: ["yes", "no", "unclear"]
+
+  # # Risk of Bias
+  # - id: "1.risk"
+  #   text: "Could the selection of patients/images have introduced bias?"
+  #   section: "patient_selection"
+  #   item_type: "risk_of_bias"
+  #   guidance: "Overall risk-of-bias judgment for patient/image selection, based on the signaling questions above."
+  #   response_options: ["low", "high", "unclear"]
+
+  # Applicability
+  - id: "1.app.desc"
+    text: "Describe included patients/images (presentation, prior testing, intended use of index test, acquisition setting)"
+    section: "patient_selection"
+    item_type: "descriptive"
+    guidance: "Free-text description of the included sample for applicability assessment."
+    response_options: ["text"]
+
+  - id: "1.app"
+    text: "Is there concern that the included patients/images do not match the review question (real-world XCA practice)?"
+    section: "patient_selection"
+    item_type: "applicability"
+    guidance: >
+      Judge whether the images/patients RESEMBLE those seen in routine XCA practice.
+      Default to LOW: ordinary clinical angiograms acquired during clinical practice
+      including public datasets of real clinical angiograms.
+      Rate HIGH only when the sample is a poor stand-in for real XCA images —
+      e.g. a deliberately curated easy subset (only pristine, artifact-free frames
+      with hard cases removed), only synthetic/phantom images used as the evaluation data,
+      a non-clinical population, or an artificially balanced case-control cohort
+      engineered to not reflect real disease prevalence.
+    response_options: ["low", "high", "unclear"]
+
+  # ──────────────────────────────────────────────
+  # DOMAIN 2: INDEX TEST(S)
+  # ──────────────────────────────────────────────
+  - id: "2.desc"
+    text: "Describe the index test (deep learning model) and how it was applied and interpreted"
+    section: "index_test"
+    item_type: "descriptive"
+    guidance: "Free-text description of the DL model, how it was applied at inference, and how its outputs were interpreted/thresholded."
+    response_options: ["text"]
+
+  # Signaling Questions
+  - id: "2.1"
+    text: "Were the index test results obtained without test-set leakage from the reference standard?"
+    section: "index_test"
+    item_type: "signaling"
+    guidance: >
+      ML operationalization of QUADAS-2 blinding: the concern is data leakage, not
+      human blinding.
+      Y: A normal held-out split or cross-validation with no sign of leakage — this
+      is the default, and includes standard/established public splits and ordinary
+      k-fold CV even when patient-level disjointness is not explicitly stated.
+      N: Actual evidence of leakage — test data used in training, the same
+      patient's/case's images appearing in more than one partition, or a threshold/
+      hyperparameter tuned on the test set. Unclear: the split is described in a way
+      that positively suggests possible leakage but cannot be confirmed (not merely
+      'not fully described').
+    response_options: ["yes", "no", "unclear"]
+
+  - id: "2.2"
+    text: "If a threshold was used, was it pre-specified?"
+    section: "index_test"
+    item_type: "signaling"
+    guidance: >
+      This probes threshold optimisation on the test set. Y: no decision threshold
+      applies (e.g. pure segmentation reporting Dice/IoU), OR a standard/default
+      threshold is used (e.g. 0.5 on a sigmoid/softmax, argmax for multi-class) —
+      treat the conventional default as pre-specified even if not explicitly stated,
+      OR a non-default threshold is stated to have been fixed before test evaluation.
+      N: Only if the threshold was CLEARLY selected on the test set (e.g. reporting the operating
+      point that maximises test F1 or Youden's J). Unclear: a clearly NON-default
+      threshold is used but the paper does not say how it was chosen, so test-set
+      tuning cannot be ruled out.
+    response_options: ["yes", "no", "unclear"]
+
+  # # Risk of Bias
+  # - id: "2.risk"
+  #   text: "Could the conduct or interpretation of the index test have introduced bias?"
+  #   section: "index_test"
+  #   item_type: "risk_of_bias"
+  #   guidance: "Overall risk-of-bias judgment for the index test, based on the signaling questions above (leakage and threshold specification)."
+  #   response_options: ["low", "high", "unclear"]
+
+  # Applicability
+  - id: "2.app"
+    text: "Is there concern that the index test, its conduct, or interpretation differ from the review question (deployable XCA model)?"
+    section: "index_test"
+    item_type: "applicability"
+    guidance: >
+      Judge whether the MODEL and how it is run could function in a real XCA workflow
+      (not the input data's representativeness — that is assessed in 1.app).
+      LOW: a model taking standard angiographic frames and producing a clinically
+      usable output. Routine operator steps that also occur in the cath lab — selecting
+      the diagnostic frame or projection, resizing, normalisation, cropping — do NOT
+      make a study HIGH, since a human is already in the loop at those steps in practice.
+      Rate HIGH only when the model, as built, could not run in real practice — e.g. it
+      needs information unavailable at inference time, or depends on extensive manual
+      expert annotation that the model itself is meant to replace.
+      Unclear: too little detail on model conduct to judge.
+    response_options: ["low", "high", "unclear"]
+
+  # ──────────────────────────────────────────────
+  # DOMAIN 3: REFERENCE STANDARD
+  # ──────────────────────────────────────────────
+  - id: "3.desc"
+    text: "Describe the reference standard (ground truth) and how it was obtained and interpreted"
+    section: "reference_standard"
+    item_type: "descriptive"
+    guidance: "Free-text description of the reference standard, how it was generated, and by whom."
+    response_options: ["text"]
+
+  # Signaling Questions
+  - id: "3.1"
+    text: "Is the reference standard likely to correctly classify the target condition?"
+    section: "reference_standard"
+    item_type: "signaling"
+    guidance: >
+      Y: A validated objective standard (QCA, FFR/iFR, IVUS/OCT), OR annotation by a
+      qualified clinician/imaging expert (cardiologist, radiologist, or physician-level
+      reader). If the paper uses a multi-stage pipeline with several reference standards,
+      each stage's reference standard must independently meet this bar (Y only if all do).
+      N: Weak or non-expert ground truth — labels from students/trainees or
+      technologists as the sole standard, crowd/untrained labels, or auto-generated
+      masks used without expert review. Unclear: annotator expertise and standard not
+      described (maps to 'Not reported' in the extraction).
+    response_options: ["yes", "no", "unclear"]
+
+  - id: "3.2"
+    text: "Was the reference standard established independently of the index test (no influence from model outputs)?"
+    section: "reference_standard"
+    item_type: "signaling"
+    guidance: >
+      ML operationalization: the concern is whether ground truth was influenced by
+      the model. Y: Annotation was created independently — typically it predates the
+      model or was produced by annotators with no access to model outputs (the usual
+      case; treat annotation-precedes-model as low-risk Y). N: Ground truth was
+      generated or corrected using the model's own predictions (e.g. model-assisted
+      labeling of the test set). In a multi-stage pipeline, also treat as N if a later
+      stage's ground truth is derived from an earlier stage's model predictions. Unclear:
+      relationship between annotation and model not described.
+    response_options: ["yes", "no", "unclear"]
+
+  # # Risk of Bias
+  # - id: "3.risk"
+  #   text: "Could the reference standard, its conduct, or its interpretation have introduced bias?"
+  #   section: "reference_standard"
+  #   item_type: "risk_of_bias"
+  #   guidance: "Overall risk-of-bias judgment for the reference standard, based on the signaling questions above."
+  #   response_options: ["low", "high", "unclear"]
+
+  # Applicability
+  - id: "3.app"
+    text: "Is there concern that the target condition as defined by the reference standard does not match the review question?"
+    section: "reference_standard"
+    item_type: "applicability"
+    guidance: >
+      Judge whether the TARGET/DEFINITION of the ground truth matches the clinically
+      meaningful condition in XCA.
+      LOW: the target is expert- or guideline-based — e.g. QCA or FFR/iFR for stenosis
+      significance, expert-drawn vessel/lesion delineation, standard anatomical labels.
+      This also applies to labels taken from clinical practice.
+      HIGH: the defined target is not a clinical condition made by an expert/physician or 
+      clinical procedure — a surrogate or convenience target that diverges from the clinically meaningful one,
+      unvalidated auto-generated annotations treated as truth, or definitions/criteria
+      mixed inconsistently across cases (e.g. some cases by QCA, others by eyeballing).
+      Unclear: the target definition is not described well enough to judge.
+    response_options: ["low", "high", "unclear"]
+
+  # ──────────────────────────────────────────────
+  # DOMAIN 4: FLOW AND TIMING
+  # ──────────────────────────────────────────────
+  - id: "4.desc1"
+    text: "Describe any patients/images that did not receive the index test and/or reference standard, or were excluded from the analysis"
+    section: "flow_and_timing"
+    item_type: "descriptive"
+    guidance: "Free-text description of excluded cases/images (refer to flow diagram if present)."
+    response_options: ["text"]
+
+  - id: "4.desc2"
+    text: "Describe the time interval and any interventions between index test and reference standard"
+    section: "flow_and_timing"
+    item_type: "descriptive"
+    guidance: >
+      Free-text. For most XCA DL studies the model and the reference standard are
+      applied to the same static images, so the interval is effectively zero; note
+      any exception (e.g. reference standard from a different modality or a later study).
+    response_options: ["text"]
+
+  # Signaling Questions
+  - id: "4.1"
+    text: "Was there an appropriate interval between index test and reference standard?"
+    section: "flow_and_timing"
+    item_type: "signaling"
+    guidance: >
+      Y: Index test and reference standard refer to the same imaging/case (interval
+      effectively zero — the typical XCA DL situation). N: Reference standard derived
+      from a different acquisition or a clinically meaningful time lapse that could
+      change the target condition. Unclear: not described.
+    response_options: ["yes", "no", "unclear"]
+
+  - id: "4.2"
+    text: "Did all evaluated (test-set) patients/images receive a reference standard (ground-truth annotation)?"
+    section: "flow_and_timing"
+    item_type: "signaling"
+    guidance: >
+      Coverage of ground truth on the EVALUATION/TEST set.
+      Self-supervised pretraining, pseudo-labelling, or semi-supervised methods on the
+      TRAINING data do NOT count against this; unlabelled/pseudo-labelled training data
+      is a valid design choice. Y: every case/image on which performance is REPORTED
+      has a genuine expert/objective reference-standard annotation. N: some evaluated
+      cases lack true ground truth — e.g. metrics computed against pseudo-labels, or
+      ground truth obtained on only part of the test set while metrics are reported on
+      all of it. If multiple datasets are used, judge the primary evaluation dataset(s)
+      the main results rely on; a supplementary external/generalisation set is not
+      penalised here. Unclear: test-set annotation coverage not described,
+      including when a public/benchmark dataset with inherited labels is used and whether
+      every evaluated case is truly annotated cannot be confirmed.
+    response_options: ["yes", "no", "unclear"]
+
+  - id: "4.3"
+    text: "Did all patients/images receive the same reference standard (consistent annotation protocol)?"
+    section: "flow_and_timing"
+    item_type: "signaling"
+    guidance: >
+      Consistency of ground truth. Y: A single, uniform annotation method/protocol
+      (same modality, same rater qualifications, same criteria) applied across all
+      cases. If the paper uses a multi-stage pipeline with several reference standards,
+      each stage's reference standard must be internally consistent across its cases.
+      N: Mixed standards — e.g. some cases labeled by QCA and others by visual
+      assessment, or different annotator pools with different criteria. Unclear: not
+      described, including when a public/benchmark dataset with inherited labels is used
+      and annotation consistency cannot be confirmed.
+    response_options: ["yes", "no", "unclear"]
+
+    
+  - id: "4.4"
+    text: "Were all evaluated (test-set) patients/images included in the analysis?"
+    section: "flow_and_timing"
+    item_type: "signaling"
+    guidance: >
+      Attrition from the EVALUATION/TEST set only — not the training data. Training-side
+      filtering or sample selection does NOT count against this. Y: every case/image in
+      the defined test set is included in the reported results, or any exclusions are
+      stated and justified. N: test cases are dropped from the analysis without
+      accounting — e.g. removed for preprocessing/segmentation failures, missing data,
+      or unexplained loss between the stated test set and the reported N. If multiple
+      datasets are used, judge the primary evaluation dataset(s) the main results rely
+      on; a supplementary external/generalisation set is not penalised here. Unclear:
+      test-set flow/attrition not described.
+    response_options: ["yes", "no", "unclear"]
+
+  # # Risk of Bias
+  # - id: "4.risk"
+  #   text: "Could the patient/image flow have introduced bias?"
+  #   section: "flow_and_timing"
+  #   item_type: "risk_of_bias"
+  #   guidance: "Overall risk-of-bias judgment for flow and timing, based on the signaling questions above."
+  #   response_options: ["low", "high", "unclear"]

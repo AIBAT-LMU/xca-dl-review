@@ -1,0 +1,24 @@
+{
+  "Self-supervised": [
+    15,
+    67,
+    82,
+    97,
+    169,
+    171
+  ],
+  "Semi-supervised": [
+    63,
+    157,
+    165,
+    177,
+    195
+  ],
+  "Weakly-supervised": [
+    178
+  ],
+  "Unsupervised": [
+    97,
+    159
+  ]
+}

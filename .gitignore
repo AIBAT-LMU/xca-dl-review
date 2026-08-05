@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+
+# Generated output -- regenerate by running the scripts (see README).
+results/

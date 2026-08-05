@@ -1,0 +1,18 @@
+# Reference numbering ground truth for the manuscript tables/figures.
+# The 196 included studies are numbered 1-196 (Zotero AMA-alphabetical order),
+# matched on DOI during database preparation. The published database is the
+# source of truth and already carries this numbering in papers.ref_number.
+[paths]
+db = "../xca_dl_review.db"
+bib = "../xca_dl_review_references.bib"
+tables = "../results/tables"
+figures = "../results/figures"
+
+[references]
+start = 1
+
+[table1]
+# Publication-period bins for Table 1. The three-year windows cover the
+# substantive years; 2026 is shown on its own line as the current (incomplete)
+# year rather than being folded into the 2023- window.
+periods = [[2016, 2019], [2020, 2022], [2023, 2025], [2026, 2026]]

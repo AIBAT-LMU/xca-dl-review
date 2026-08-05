@@ -1,0 +1,40 @@
+log_level: INFO
+
+llm:
+  provider: "openai"                     # vLLM speaks the OpenAI-compatible API
+  model: "Qwen/Qwen3.6-27B"
+  vision_model: "Qwen/Qwen3.6-27B"       # same server handles vision (confirmed multimodal from its startup log)
+  temperature: 0.1
+  base_url: "http://localhost:11434"     # placeholder -- always overridden per-task by the scripts (see below)
+  api_key: "dummy"
+  num_ctx: 262144                        # actual Qwen3.6-27B context limit per the vLLM server's own error messages -- now load-bearing for the openai provider too (client-side output-budget capping in extractor.py), not just Ollama
+  num_predict: 16384
+  timeout: 300
+  max_retries: 3
+
+parser:
+  extract_images: true
+  accurate_tables: true
+  save_figures: true
+  use_gpu: false
+  ocr_engine: "easyocr"
+  ocr_fallback: true
+
+embedding:
+  model_name: "allenai/specter2_proximity"
+  adapter_name: ""
+  batch_size: 32
+  normalize: true
+
+chunking:
+  max_tokens: 512
+  overlap_tokens: 64
+  respect_sections: true
+  respect_paragraphs: true
+
+extraction:
+  schema_file: "xca_schema.yaml"
+  require_evidence: true
+  min_certainty: "low"
+  agentic: true
+  verify: true

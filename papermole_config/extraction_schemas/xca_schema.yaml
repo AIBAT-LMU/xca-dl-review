@@ -1,0 +1,858 @@
+name: "dl_xray_coronary_angiography_long"
+version: "3.4"
+description: >
+  Data extraction schema for deep learning in X-ray coronary angiography (XCA)
+  systematic review. Redesigned from v3.3 to reduce free text in favour of
+  categorical/number fields, close scorecard gaps, and remove unused fields.
+  Every categorical carries an explicit sentinel option (Not reported / Unclear /
+  NA) so no downstream NA-normalization is required. Fields are paper-level
+  (once per paper), dataset-level (once per dataset), or model-level (once per
+  model/task combination) for long-format export.
+
+repeat_groups:
+  - dataset_instance
+  - model_instance
+  - model_performance
+
+fields:
+  # ──────────────────────────────────────────────
+  # PAPER-LEVEL
+  # ──────────────────────────────────────────────
+
+  # Identification
+  - name: "paper_title"
+    description: "Full title of the paper"
+    field_type: "text"
+    group: "identification"
+    required: true
+
+  - name: "author"
+    description: "First or corresponding author"
+    field_type: "text"
+    group: "identification"
+    required: true
+
+  - name: "doi"
+    description: "Digital Object Identifier"
+    field_type: "text"
+    group: "identification"
+    validation:
+      pattern: "^10\\."
+
+  - name: "year"
+    description: "Publication year"
+    field_type: "number"
+    group: "identification"
+    validation:
+      min: 1990
+      max: 2030
+
+  - name: "type_of_paper"
+    description: "Journal or conference publication"
+    field_type: "categorical"
+    group: "identification"
+    options: ["Journal", "Conference", "Not reported"]
+
+  - name: "journal_conference_title"
+    description: "Name of the journal or conference"
+    field_type: "text"
+    group: "identification"
+
+  # Clinical Context
+  - name: "patient_presentation"
+    description: >
+      Dominant clinical presentation of the cohort. CCS/stable = stable/chronic
+      coronary syndrome. ACS = any acute presentation (STEMI, NSTEMI, unstable
+      angina). Mixed if the cohort spans both, or 'consecutive patients' without
+      specification.
+    field_type: "categorical"
+    group: "clinical"
+    options: ["CCS/stable", "ACS", "Mixed", "Other", "Not reported"]
+
+  - name: "procedure_type"
+    description: "Type of catheterization procedure. Combined = both diagnostic and PCI."
+    field_type: "categorical"
+    group: "clinical"
+    options: ["Diagnostic angiography", "PCI", "Combined", "Other", "Not reported"]
+
+  # Imaging Protocol (transparency flags)
+  - name: "radiation_dose_reported"
+    description: "Whether any radiation dose metric (DAP, fluoroscopy time) is reported"
+    field_type: "categorical"
+    group: "imaging"
+    options: ["Y", "N"]
+
+  - name: "frame_rate_reported"
+    description: "Whether acquisition frame rate (fps) is reported"
+    field_type: "categorical"
+    group: "imaging"
+    options: ["Y", "N"]
+
+  - name: "acquisition_system_reported"
+    description: "Whether the angiography system make/model is named anywhere in the paper"
+    field_type: "categorical"
+    group: "imaging"
+    options: ["Y", "N"]
+
+  # Target Anatomy
+  - name: "target_vessel"
+    description: >
+      Target coronary vessel(s). 'All/whole tree' = model operates on the full
+      angiogram without restricting to a named vessel. 'Multiple (specified)' =
+      the paper names 2+ specific vessels (e.g. LAD+LCX+RCA) without covering the
+      whole tree. 'Not specified' = the paper never states which vessel(s) the
+      model targets.
+    field_type: "categorical"
+    group: "anatomy"
+    options: ["LAD", "LCX", "RCA", "LM", "All/whole tree", "Multiple (specified)", "Not specified"]
+
+  # Workflow & Validation (scorecard-linked)
+  - name: "multi_center"
+    description: "Single- vs multi-center data. Multi-center = data from 2+ institutions."
+    field_type: "categorical"
+    group: "clinical"
+    required: true
+    options: ["Single-center", "Multi-center", "Unclear"]
+
+  - name: "prospective_validation"
+    description: "Whether any validation was prospective (data collected after model design). Retrospective-only = N."
+    field_type: "categorical"
+    group: "clinical"
+    required: true
+    options: ["Y", "N", "Unclear"]
+
+  - name: "real_time_capability"
+    description: >
+      Whether the model can run in real time during catheterization. Y only if the
+      paper reports real-time-compatible inference speed OR explicitly claims
+      real-time capability. A claim without speed evidence = Unclear.
+    field_type: "categorical"
+    group: "clinical"
+    required: true
+    options: ["Y", "N", "Unclear"]
+
+  - name: "human_comparison"
+    description: >
+      Whether the study benchmarked the model against human readers, and how.
+      'None' = no human comparison. 'Yes - Qualitative' = compared but no numbers
+      (e.g. "comparable to expert readers"). 'Yes - Quantitative' = a numeric
+      comparison against human performance is reported. 'Not reported' = unclear
+      whether any comparison was done.
+    field_type: "categorical"
+    group: "clinical"
+    options: ["None", "Yes - Qualitative", "Yes - Quantitative", "Not reported"]
+
+  - name: "clinical_outcome_impact"
+    description: >
+      Whether the study reports any effect on clinical/patient outcomes (e.g. change
+      in treatment decisions, diagnostic yield, or patient results) — not just model
+      performance metrics. Y = an outcome effect is reported. N = performance only.
+    field_type: "categorical"
+    group: "clinical"
+    options: ["Y", "N"]
+
+  # Demographics (reporting flags only — pooled values indefensible at 15-19% fill)
+  - name: "age_reported"
+    description: "Whether patient age is reported for the cohort."
+    field_type: "categorical"
+    group: "demographics"
+    options: ["Y", "N"]
+
+  - name: "sex_reported"
+    description: "Whether sex distribution is reported."
+    field_type: "categorical"
+    group: "demographics"
+    options: ["Y", "N"]
+
+  # Study Design
+  - name: "num_models"
+    description: >
+      Number of distinct models with their OWN reported performance. Count proposed
+      model(s) plus any baseline/comparison with its own metrics. Do NOT count
+      methods cited from other papers without re-evaluation. Ablation variants count
+      only if reported as separate rows with their own metrics. Should equal the
+      number of model_instance rows.
+    field_type: "number"
+    group: "study_design"
+    required: true
+    validation:
+      min: 1
+
+  - name: "num_tasks"
+    description: "Number of distinct tasks addressed (e.g. segmentation AND classification = 2)"
+    field_type: "number"
+    group: "study_design"
+    required: true
+    validation:
+      min: 1
+
+  - name: "is_multi_stage_pipeline"
+    description: "Whether one model's output feeds another (e.g. detection then classification). N = single end-to-end model."
+    field_type: "categorical"
+    group: "study_design"
+    options: ["Y", "N", "Unclear"]
+
+  - name: "num_datasets"
+    description: >
+      Number of distinct dataset SOURCES (count each unique origin once; a train/test
+      split of one dataset is ONE source). Should equal the number of dataset_instance
+      rows.
+    field_type: "number"
+    group: "study_design"
+    required: true
+    validation:
+      min: 1
+
+  - name: "external_validation_used"
+    description: >
+      Whether at least one dataset is used only for external validation (test data
+      from a DIFFERENT source than training: another hospital, scanner, or public
+      benchmark not used in training). Y = clearly different source. N = only a split
+      of the same source. Unclear = separate set evaluated but source not stated.
+    field_type: "categorical"
+    group: "study_design"
+    required: true
+    options: ["Y", "N", "Unclear"]
+
+  # Compliance & Reproducibility
+  - name: "guideline_adherence"
+    description: "Whether the study adheres to a reporting guideline (CLAIM, TRIPOD, STARD, etc.)"
+    field_type: "categorical"
+    group: "compliance"
+    required: true
+    options: ["Y", "N"]
+
+  - name: "guideline_name"
+    description: "Name of the reporting guideline adhered to. NA if none."
+    field_type: "text"
+    group: "compliance"
+
+  - name: "code_availability"
+    description: "Whether code is available online or as an open-access app/website"
+    field_type: "categorical"
+    group: "compliance"
+    required: true
+    options: ["Y", "N", "Partly"]
+
+  - name: "code_opensource"
+    description: "Whether released code has an OSI-approved license (MIT, Apache-2, GPL, BSD)"
+    field_type: "categorical"
+    group: "compliance"
+    required: true
+    options: ["Y", "N", "Unclear", "NA"]
+
+  - name: "code_url"
+    description: "URL to the code repository or application. NA if not provided."
+    field_type: "text"
+    group: "compliance"
+
+  - name: "code_license"
+    description: "License of released code. 'Not stated' = code available but no license file. NA = no code."
+    field_type: "categorical"
+    group: "compliance"
+    options: ["MIT", "Apache-2.0", "GPL-3.0", "BSD", "Other OSI", "Proprietary", "Not stated", "NA"]
+
+  - name: "trained_model_available"
+    description: "Whether pre-trained model weights are publicly available"
+    field_type: "categorical"
+    group: "compliance"
+    options: ["Y", "N", "Unclear"]
+
+  - name: "explainability_method"
+    description: >
+      Whether an explainability/interpretability method is applied (Grad-CAM,
+      attention maps, saliency, SHAP, etc.). Y = applied and shown; N = none.
+    field_type: "categorical"
+    group: "compliance"
+    required: true
+    options: ["Y", "N"]
+
+  # Preprocessing & Augmentation (paper-level, shared across models)
+  - name: "data_augmentation_steps"
+    description: >
+      Data augmentation techniques applied during training. Select all that apply.
+      Map free descriptions to the closest option. 'None' if stated none; 'Not
+      reported' if not mentioned.
+    field_type: "multi_select"
+    group: "preprocessing"
+    required: true
+    options: ["Rotation", "Flip", "Scale/Zoom", "Crop", "Translation", "Elastic/Deformation", "Brightness/Contrast", "Noise", "Blur", "Other", "None", "Not reported"]
+
+  - name: "preprocessing_steps"
+    description: >
+      Preprocessing applied before model input. Select all that apply. Map free
+      descriptions to the closest option (e.g. 'histogram equalization' to Contrast
+      enhancement). 'None'/'Not reported' as above.
+    field_type: "multi_select"
+    group: "preprocessing"
+    required: true
+    options: ["Resize", "Normalization", "ROI crop", "Denoising", "Contrast enhancement", "Frame selection", "Vessel/mask preprocessing", "Grayscale/format conversion", "Other", "None", "Not reported"]
+
+  - name: "frame_selection_method"
+    description: >
+      HOW the frame(s) fed to the model are chosen from the angiographic sequence.
+      'Manual' = a human selects. 'Automated' = a model/algorithm selects.
+      'None' = no selection (whole sequence or a still-image dataset used as-is).
+      'Unclear' = a selection/screening step is described but whether it was manual
+      or automated is not stated. 'Not reported' = not described at all.
+    field_type: "categorical"
+    group: "preprocessing"
+    options: ["Manual", "Automated", "None", "Unclear", "Not reported"]
+
+  - name: "frame_input_scope"
+    description: >
+      HOW MANY frames the model actually receives. 'Single frame' = one image.
+      'Keyframe + neighbours' = a selected frame plus surrounding frames (a short
+      window/clip around it). 'Full sequence' = the entire cine run. 'N/A' =
+      still-image dataset, not sequence-based. 'Not reported' = not described.
+    field_type: "categorical"
+    group: "preprocessing"
+    options: ["Single frame", "Keyframe + neighbours", "Full sequence", "N/A", "Not reported"]
+
+  # Testing
+  - name: "testing_scheme"
+    description: >
+      Evaluation scheme. 'Train/Test' = a held-out split (this covers plain train/test
+      AND train/val/test -- the presence of a separate validation split is not encoded
+      here; record it in notes if needed). 'CV' = cross-validation only (single loop).
+      'Train/Test + CV' = a held-out split PLUS CV for tuning.
+      'Nested CV' = CV inside CV (inner tunes, outer evaluates; no single held-out set).
+      'No held-out test' = no independent test set (train-only or tested on training data).
+      'Not reported' = the paper does not describe its evaluation scheme.
+    field_type: "categorical"
+    group: "evaluation"
+    required: true
+    options: ["Train/Test", "CV", "Train/Test + CV", "Nested CV", "No held-out test", "Not reported"]
+
+  # Notes
+  - name: "notes"
+    description: "Additional notes or observations about the paper (free-text escape hatch)"
+    field_type: "text"
+    group: "notes"
+
+  # ──────────────────────────────────────────────
+  # DATASET-LEVEL (one row per dataset source)
+  # ──────────────────────────────────────────────
+
+  - name: "dataset_label"
+    description: >
+      Short label identifying this dataset or split within the paper (e.g. 'Main',
+      'Main-Test', 'External-1'). Use the authors' own name for it if they give one.
+
+      Every value referenced by eval_dataset needs a matching row here. If the paper
+      evaluates on a split or subset it never names (e.g. "the held-out 20%", "an
+      external test cohort"), invent a short label for it and give it its own row in
+      this group, with the appropriate dataset_role.
+
+      Label only — max 20 chars, no spaces, no parentheses, no cohort sizes. Not
+      'DCA1 (Mexican Social Security Institute)' but 'DCA1'; the expanded name goes
+      in dataset_name, any prose in dataset_notes.
+    field_type: "text"
+    group: "dataset_instance"
+    required: true
+    validation:
+      max_length: 20
+      pattern: "^[A-Za-z0-9][A-Za-z0-9_.-]*$"
+
+  - name: "dataset_name"
+    description: "Official/common name of the dataset (e.g. 'DCA1', 'XCAD', 'CADICA', 'Private-Hospital-X')"
+    field_type: "text"
+    group: "dataset_instance"
+    required: true
+
+  - name: "dataset_url"
+    description: "URL or DOI to the dataset if public. NA if private or not provided."
+    field_type: "text"
+    group: "dataset_instance"
+
+  - name: "dataset_role"
+    description: >
+      How this dataset is used. 'Training+Test' = same source split for train and test
+      (this also covers train/val/test -- a separate validation split is not encoded
+      here; record it in dataset_notes if needed). 'Test-only' = held-out test from the
+      SAME source as training (not independent). 'External Validation' = test from a
+      DIFFERENT source (other institution/scanner/public benchmark not used in training).
+    field_type: "categorical"
+    group: "dataset_instance"
+    required: true
+    options: ["Training", "Training+Test", "Test-only", "External Validation", "Pretraining", "Auxiliary"]
+
+  - name: "dataset_accessibility"
+    description: >
+      Can a reader obtain this dataset? 'Open' = freely downloadable now (public
+      repository, no gatekeeping). 'On Request' = available but requires a step —
+      emailing authors, a data-use agreement, or registration. 'Partly Open' = only
+      SOME of it is public (e.g. the test set released but training data private, or
+      a public subset of a larger private cohort). 'Closed' = not available at all.
+      'Not reported' = the paper never states accessibility.
+    field_type: "categorical"
+    group: "dataset_instance"
+    required: true
+    options: ["Open", "On Request", "Partly Open", "Closed", "Not reported"]
+
+  - name: "dataset_source_type"
+    description: "Origin of the dataset"
+    field_type: "categorical"
+    group: "dataset_instance"
+    options: ["Public", "Hospital/Clinical", "Synthetic", "Mixed", "Unclear"]
+
+  - name: "dataset_country"
+    description: >
+      Country/region of data origin, if stated (hospital location or dataset
+      provenance). Use the country name. 'Multiple' if multi-national. 'Not reported'
+      if origin never stated (common for public datasets).
+    field_type: "text"
+    group: "dataset_instance"
+
+  - name: "dataset_size_samples"
+    description: "Total number of samples (images/frames/sequences), as a number. Null if not reported."
+    field_type: "number"
+    group: "dataset_instance"
+
+  - name: "dataset_size_patients"
+    description: "Total number of patients, as a number. Null if not reported."
+    field_type: "number"
+    group: "dataset_instance"
+
+  - name: "dataset_annotation_type"
+    description: "Annotation types available in this dataset. Select all that apply."
+    field_type: "multi_select"
+    group: "dataset_instance"
+    options: ["Segmentation masks", "Bounding boxes", "Image-level labels", "QCA measurements", "FFR/iFR values", "Keypoints/landmarks", "Other", "None/Unlabeled"]
+
+  - name: "annotator_expertise"
+    description: >
+      Highest expertise level among annotators who created the ground truth. If
+      several levels contributed, pick the MOST senior (e.g. cardiologist + student
+      = Cardiologist). Tiers high→low: Cardiologist > Radiologist > Physician
+      (other/unspecified) > Student/Trainee (med student, resident, PhD) >
+      Technologist/Radiographer > Non-expert (crowd/untrained) > Not reported.
+    field_type: "categorical"
+    group: "dataset_instance"
+    options: ["Cardiologist", "Radiologist", "Physician (other/unspecified)", "Student/Trainee", "Technologist/Radiographer", "Non-expert", "Not reported"]
+
+  - name: "annotator_count"
+    description: "Number of independent annotators. Pick the bucket. 'Not reported' if unstated."
+    field_type: "categorical"
+    group: "dataset_instance"
+    options: ["1", "2", ">=3", "Not reported"]
+
+  - name: "inter_annotator_agreement"
+    description: >
+      Whether an inter-annotator agreement statistic (kappa, ICC, inter-rater Dice)
+      is reported. Value, if any, goes in dataset_notes.
+    field_type: "categorical"
+    group: "dataset_instance"
+    options: ["Reported", "Not reported"]
+
+  - name: "dataset_notes"
+    description: "Additional notes about this dataset (e.g. 'subset of DCA1, LAD only', reported kappa value)"
+    field_type: "text"
+    group: "dataset_instance"
+
+  # ──────────────────────────────────────────────
+  # MODEL-LEVEL (one row per model/task)
+  # ──────────────────────────────────────────────
+
+  - name: "model_label"
+    description: "Short label to identify this model within the paper (e.g. 'Proposed', 'Baseline-UNet'). Use the authors' name."
+    field_type: "text"
+    group: "model_instance"
+    required: true
+
+  - name: "model_role"
+    description: >
+      Role in the paper. 'Proposed' = the paper's own main contribution -- if
+      multiple models are evaluated with no single one framed as the novel
+      contribution (e.g. a pure benchmarking/comparison study), pick the one the
+      paper's own abstract/conclusion frames as its headline result, or mark ALL
+      of them 'Proposed' only if the paper is explicitly presented as a
+      multi-method benchmark with no distinguished contribution.
+      'Baseline'/'Comparison' distinguish HOW the number was obtained, not just
+      "not the contribution": 'Baseline' = the paper's own authors implemented
+      and RAN this method themselves on their own data (look for phrasing like
+      "we trained/re-implemented X", "using the official implementation of X").
+      'Comparison' = numbers CITED from the original publication or a different
+      study, not re-run by this paper's authors (look for phrasing like "X reports
+      an accuracy of...", "as shown in [ref]"). If the text doesn't make this
+      distinction clear, prefer 'Baseline' when the model was evaluated on THIS
+      paper's own dataset (implies it was actually run), 'Comparison' when the
+      cited number is from a different dataset/paper entirely.
+      'Ablation' = variant of the proposed model. 'Component' = one stage of a
+      larger multi-stage pipeline (e.g. a segmentation model feeding a downstream
+      classifier) rather than a standalone contribution, baseline, ablation, or
+      comparison method.
+    field_type: "categorical"
+    group: "model_instance"
+    required: true
+    options: ["Proposed", "Baseline", "Ablation", "Comparison", "Component"]
+
+  - name: "field_of_application"
+    description: >
+      Specific application sub-category. Assign exactly ONE by the model's final clinical
+      output. Choose the most specific matching option below - do NOT answer with a broad
+      domain name; only the specific sub-categories are valid answers. Core rule for
+      stenosis work: if the model gives a LOCATION (where the lesion is) it is detection;
+      if it gives only a yes/no or class LABEL (whether disease is present) it is
+      classification; if it gives a NUMBER (severity) it is quantification.
+
+      Vessel segmentation tasks:
+        Binary vessel extraction - foreground/background vessel mask only.
+        Semantic vessel labeling - vessel mask WITH named-segment/class labels (LAD, LCX...).
+      Stenosis tasks:
+        Stenosis detection - LOCALISING a stenotic lesion (bounding box, point, or mask marking
+          WHERE the lesion is); not a mere per-image yes/no.
+        Stenosis quantification - percentage/diameter stenosis, QCA-type anatomical measures.
+        FFR/iFR prediction - physiologic index prediction.
+      Classification tasks:
+        Lesion classification - image- or lesion-level DISEASE label with no localisation,
+          including image-level 'stenosis present/absent' and severity-class labels.
+        View/angle classification - projection or acquisition-view label.
+        Functional significance classification - functionally-significant vs not, as a category.
+      Other detection tasks:
+        Lesion detection (non-stenosis) - CTO or other non-stenosis lesion targets.
+        Anatomical detection - landmarks, catheter/guidewire/device, anatomical structures.
+        Frame selection detection - detecting diagnostic/keyframes.
+        Abnormality screening - image-level normal-vs-abnormal triage.
+      Image processing tasks:
+        Enhancement/denoising - improving image quality: denoising, contrast enhancement,
+          super-resolution, layer/background separation, structural cleanup.
+        Keyframe/frame selection - selecting frames as the model's task (not preprocessing).
+        Image matching/registration - aligning frames/sequences.
+        3D reconstruction - reconstruction of 3D vessel structure.
+
+      Tie-breaks: severity/% -> Stenosis quantification; FFR/iFR/flow -> FFR/iFR prediction;
+      lesion localisation WITH a location -> Stenosis detection; image-level stenosis
+      present/absent WITHOUT location -> Lesion classification; CTO/landmark/device ->
+      Other detection sub-types; image only cleaned/enhanced/created -> the relevant Image
+      processing sub-type.
+
+      If the model's actual output genuinely fits none of the above (e.g. wall shear
+      stress / hemodynamic estimation), use 'Other' and name the real task in
+      classification_target rather than forcing it into the closest wrong bucket.
+    field_type: "categorical"
+    group: "model_instance"
+    required: true
+    options: ["Binary vessel extraction", "Semantic vessel labeling", "Stenosis detection", "Stenosis quantification", "FFR/iFR prediction", "Lesion classification", "View/angle classification", "Functional significance classification", "Lesion detection (non-stenosis)", "Anatomical detection", "Frame selection detection", "Abnormality screening", "Enhancement/denoising", "Keyframe/frame selection", "Image matching/registration", "3D reconstruction", "Other"]
+  
+  - name: "task_category"
+    description: >
+      High-level ML problem class, independent of clinical domain. Segmentation =
+      dense pixel labeling. Detection = localization/bounding. Classification =
+      discrete label. Regression = continuous value. Generation = image synthesis/
+      enhancement (GAN, diffusion, super-resolution). Other = none.
+    field_type: "categorical"
+    group: "model_instance"
+    required: true
+    options: ["Segmentation", "Detection", "Classification", "Regression", "Generation", "Other"]
+
+  - name: "classification_target"
+    description: >
+      If classification or detection, name the target (free text, e.g.
+      'angiographic view', 'guidewire tip'). If field_of_application is
+      'Other', name the actual task here instead (e.g. 'wall shear stress
+      estimation'). NA otherwise.
+    field_type: "text"
+    group: "model_instance"
+
+  - name: "reference_standard"
+    description: >
+      What was used as the ground truth (correct answer) that this model was
+      evaluated against.
+
+      Record it for THIS model's task specifically. If a paper has several tasks
+      (e.g. one model segments, another detects), each can have a different
+      reference standard — do not copy one answer across all of them.
+
+      Options: Expert manual annotation = humans hand-drew the masks/labels
+      (the usual case for segmentation). QCA / FFR/iFR / IVUS / OCT = pick one of
+      these only if that clinical measurement defined the ground truth.
+      Visual assessment = an expert judged by eye, with no formal protocol.
+      Expert consensus = multiple experts agreed a label. Other / Not reported
+      as applicable.
+    field_type: "categorical"
+    group: "model_instance"
+    required: true
+    options: ["Expert manual annotation", "QCA", "FFR/iFR", "Visual assessment", "IVUS", "OCT", "Expert consensus", "Other", "Not reported"]
+
+  - name: "algorithm_type"
+    description: >
+      Whether THIS row is deep learning or a classical (non-ML) algorithm. Deep
+      Learning = CNN, Transformer, GAN, RNN, GNN. Non-ML = active contours, graph-cut,
+      thresholding, rule-based, classical image processing. For a mixed pipeline (e.g.
+      DL segmentation then classical refinement), extract each stage as its OWN row
+      and set this per stage; link via pipeline_stage/pipeline_description.
+    field_type: "categorical"
+    group: "model_instance"
+    required: true
+    options: ["Deep Learning", "Non-ML"]
+
+  - name: "base_architecture"
+    description: >
+      Base architecture family. Pick the dominant one. Use 'Hybrid CNN+Transformer'
+      or 'Hybrid CNN+RNN' only when two families are genuinely combined (e.g. CNN
+      feature extractor + LSTM/GRU temporal module). 'NA' if algorithm_type is Non-ML.
+    field_type: "categorical"
+    group: "model_instance"
+    required: true
+    options: ["CNN", "Transformer", "Hybrid CNN+Transformer", "Hybrid CNN+RNN", "GAN", "GNN/GCN", "RNN", "MLP", "Diffusion", "NA", "Other"]
+
+  - name: "model_type"
+    description: "Specific model name (U-Net, ResNet-50, ViT-B, DeepLabV3+, YOLOv9). Free text. NA if Non-ML."
+    field_type: "text"
+    group: "model_instance"
+
+  - name: "uses_pretrained_weights"
+    description: "Whether the model uses pretrained weights (transfer learning)"
+    field_type: "categorical"
+    group: "model_instance"
+    options: ["Y", "N", "Unclear"]
+
+  - name: "pretrained_source"
+    description: >
+      Source of pretrained weights. 'Domain-specific/medical' = pretrained on medical
+      images. 'None' if from scratch. 'Unclear' if pretraining mentioned but source unstated.
+    field_type: "categorical"
+    group: "model_instance"
+    options: ["ImageNet", "COCO", "Domain-specific/medical", "Other", "None", "Unclear"]
+
+  # Training Configuration
+  - name: "optimizer"
+    description: "Optimizer used. 'Not reported' if unstated."
+    field_type: "categorical"
+    group: "model_instance"
+    options: ["Adam", "AdamW", "SGD", "RMSprop", "Other", "Not reported"]
+
+  - name: "learning_rate"
+    description: "Initial learning rate as a number (e.g. 0.001). Null if not reported. Record the initial value if a schedule."
+    field_type: "number"
+    group: "model_instance"
+
+  - name: "batch_size"
+    description: "Training batch size as a number. Null if not reported."
+    field_type: "number"
+    group: "model_instance"
+
+  - name: "epochs"
+    description: "Number of training epochs as a number. Null if not reported."
+    field_type: "number"
+    group: "model_instance"
+
+  - name: "loss_function"
+    description: "Primary loss function. 'Compound' for combined losses (e.g. Dice+CE). 'Not reported' if unstated."
+    field_type: "categorical"
+    group: "model_instance"
+    options: ["Cross-entropy", "Dice", "Compound", "Focal", "MSE", "IoU/Jaccard", "BCE", "Adversarial", "Other", "Not reported"]
+
+  # Computational Performance
+  - name: "hardware"
+    description: "GPU/compute used, vendor-model level. 'CPU only' if no GPU. 'Not reported' if unstated."
+    field_type: "categorical"
+    group: "model_instance"
+    options: ["A100", "V100", "RTX 3090", "RTX 2080", "Titan", "Other GPU", "CPU only", "Not reported"]
+
+  - name: "gpu_memory"
+    description: "GPU memory in GB as a number (e.g. 24). Null if not reported."
+    field_type: "number"
+    group: "model_instance"
+
+  - name: "training_time"
+    description: "Total training time in hours as a number. Null if not reported. Convert (30 min = 0.5)."
+    field_type: "number"
+    group: "model_instance"
+
+  - name: "inference_time_reported"
+    description: "Whether inference time per frame/image is reported."
+    field_type: "categorical"
+    group: "model_instance"
+    options: ["Y", "N"]
+
+  - name: "inference_time_value"
+    description: "Inference time per frame/image in milliseconds as a number. Null if not reported. Convert (0.03 s = 30)."
+    field_type: "number"
+    group: "model_instance"
+
+  - name: "model_complexity_reported"
+    description: >
+      Whether any model size/complexity measure is reported — number of parameters,
+      model file size (MB), FLOPs, or memory footprint. Y = at least one is given;
+      N = none.
+    field_type: "categorical"
+    group: "model_instance"
+    options: ["Y", "N"]
+
+  - name: "vessels_focused_on"
+    description: >
+      Which coronary vessel(s) this model targets. Select all that apply. 'All' =
+      whole tree / not vessel-restricted. 'Not specified' if never stated.
+    field_type: "multi_select"
+    group: "model_instance"
+    required: true
+    options: ["LAD", "LCX", "RCA", "LM", "All", "Other", "Not specified"]
+
+  - name: "pipeline_stage"
+    description: >
+      If part of a multi-stage pipeline, the stage number this row handles (1, 2, 3...).
+      Null if standalone. For a DL-then-classical pipeline, each step is its own row.
+    field_type: "number"
+    group: "model_instance"
+
+  - name: "pipeline_description"
+    description: "Full pipeline architecture if multi-stage (e.g. 'stage1 DL detection -> stage2 classical refinement'). Shared across the rows of one pipeline. NA if standalone."
+    field_type: "text"
+    group: "model_instance"
+
+  - name: "input_type"
+    description: >
+      Model input. 'Single frame' = one still image. 'Video sequence' = temporal clip.
+      'Multi-frame' = several frames, non-temporal. 'Cropped ROI' = pre-cropped region.
+      'Full angiogram' = whole image/sequence.
+    field_type: "categorical"
+    group: "model_instance"
+    options: ["Single frame", "Video sequence", "Multi-frame", "Cropped ROI", "Full angiogram", "Other"]
+
+  - name: "output_type"
+    description: "Model output. 'Stenosis %' = severity value. 'Reconstruction' = generated/enhanced image or 3D. 'Keypoints' = landmarks."
+    field_type: "categorical"
+    group: "model_instance"
+    options: ["Segmentation mask", "Bounding boxes", "Class probability", "Stenosis %", "Functional value", "Keypoints", "Reconstruction", "Other"]
+
+  # ──────────────────────────────────────────────
+  # MODEL PERFORMANCE (per model × task × dataset)
+  # ──────────────────────────────────────────────
+
+  - name: "model_label"
+    description: "Which model these metrics belong to — must match a model_instance model_label exactly."
+    field_type: "text"
+    group: "model_performance"
+    required: true
+
+  - name: "task_label"
+    description: "Which task these metrics apply to — must match that model's field_of_application exactly."
+    field_type: "text"
+    group: "model_performance"
+    required: true
+
+  - name: "eval_dataset"
+    description: >
+      Which dataset these metrics come from — must match a dataset_instance
+      dataset_label exactly. Even if the evaluation is just a held-out split
+      of one of your dataset_instance rows (not a separately named dataset),
+      reference that row's dataset_label here. If the split has no name in
+      the paper, first give it its own dataset_instance row with an invented
+      label and the appropriate dataset_role (e.g. 'Test-only' for a
+      held-out split of the training data, 'External Validation' for a
+      genuinely different source), then use that label here. Do NOT write a
+      generic description such as "Test set", "Random split", "All test
+      data", "Main dataset", "External dataset", or "held-out split"
+      directly as the value — these are not valid dataset_label references
+      and will fail validation.
+    field_type: "text"
+    group: "model_performance"
+    required: true
+
+  - name: "eval_split"
+    description: >
+      Which split this evaluation used. 'external' = independent external-validation
+      dataset. 'cross-validation' = CV-averaged. 'full' = whole dataset (no split reported).
+      'not reported' = the paper doesn't state which split this specific number came
+      from (e.g. a metric cited from a prior publication rather than evaluated here).
+    field_type: "categorical"
+    group: "model_performance"
+    required: true
+    options: ["test", "validation", "cross-validation", "external", "full", "not reported"]
+
+  # For every performance_* field: record the value as reported, include CI if given
+  # (e.g. '0.95 [0.92-0.97]'). Use exactly 'Not reported' if absent — do NOT leave
+  # blank and do NOT infer from other metrics.
+  - name: "performance_accuracy"
+    description: "Reported accuracy (with CI if given). 'Not reported' if absent."
+    field_type: "text"
+    group: "model_performance"
+
+  - name: "performance_precision"
+    description: "Reported precision / PPV (with CI if given). 'Not reported' if absent."
+    field_type: "text"
+    group: "model_performance"
+
+  - name: "performance_recall"
+    description: "Reported recall / sensitivity (with CI if given). 'Not reported' if absent."
+    field_type: "text"
+    group: "model_performance"
+
+  - name: "performance_specificity"
+    description: "Reported specificity (with CI if given). 'Not reported' if absent."
+    field_type: "text"
+    group: "model_performance"
+
+  - name: "performance_dice"
+    description: "Reported Dice coefficient (with CI if given). 'Not reported' if absent."
+    field_type: "text"
+    group: "model_performance"
+
+  - name: "performance_iou"
+    description: "Reported IoU / Jaccard (with CI if given). 'Not reported' if absent."
+    field_type: "text"
+    group: "model_performance"
+
+  - name: "performance_f1"
+    description: "Reported F1 score (with CI if given). 'Not reported' if absent."
+    field_type: "text"
+    group: "model_performance"
+
+  - name: "performance_aucroc"
+    description: "Reported AUC-ROC (with CI if given). 'Not reported' if absent."
+    field_type: "text"
+    group: "model_performance"
+
+  - name: "performance_aucpr"
+    description: "Reported AUC-PR / average precision (with CI if given). 'Not reported' if absent."
+    field_type: "text"
+    group: "model_performance"
+
+  - name: "performance_mse"
+    description: "Reported MSE / RMSE for regression (with CI if given). 'Not reported' if absent."
+    field_type: "text"
+    group: "model_performance"
+
+  - name: "performance_mae"
+    description: "Reported MAE for regression (with CI if given). 'Not reported' if absent."
+    field_type: "text"
+    group: "model_performance"
+
+  - name: "performance_hausdorff"
+    description: "Reported Hausdorff distance for segmentation (with CI if given). 'Not reported' if absent."
+    field_type: "text"
+    group: "model_performance"
+
+  - name: "performance_other"
+    description: "Any other reported metric(s) in 'metric_name: value' format (e.g. 'clDice: 0.88'). 'Not reported' if none."
+    field_type: "text"
+    group: "model_performance"
+
+  - name: "comparison_result"
+    description: "Brief summary if compared to another model (e.g. 'outperforms U-Net by 3% Dice'). NA if no comparison."
+    field_type: "text"
+    group: "model_performance"
+
+  - name: "compared_methods"
+    description: "Other models/methods compared against (free text list). NA if none."
+    field_type: "text"
+    group: "model_performance"
+
+  - name: "statistical_test"
+    description: "Statistical test(s) used for comparison. Select all that apply. 'None' if no formal test."
+    field_type: "multi_select"
+    group: "model_performance"
+    options: ["t-test", "Wilcoxon", "McNemar", "DeLong", "Bootstrap", "ANOVA", "Chi-square", "Other", "None"]
+
+  - name: "significance_reported"
+    description: "Whether any statistical significance (p-value or CI-based test) is reported for a performance comparison."
+    field_type: "categorical"
+    group: "model_performance"
+    options: ["Y", "N"]
+
+  - name: "external_validation_results"
+    description: "Performance on an external-validation dataset if reported separately (free text). NA if none."
+    field_type: "text"
+    group: "model_performance"

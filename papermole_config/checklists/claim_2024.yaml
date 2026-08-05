@@ -1,0 +1,511 @@
+name: "CLAIM 2024"
+version: "2024"
+description: >
+  Checklist for Artificial Intelligence in Medical Imaging (CLAIM), 2024 Update - 44 items
+  for evaluating reporting quality of AI studies in medical imaging. Applied unmodified as
+  the published instrument (Tejani et al., Radiol Artif Intell 2024; 6(4):e240300). Every
+  item carries Yes / No / Not Applicable per the official checklist. CLAIM is not a scoring
+  system by design; the compliance metric is documented in scoring_unit below.
+
+# NOTE: scoring_unit is DOCUMENTATION ONLY. The extraction harness (_build_prompt) sends
+# only name, version, and each item guidance to the model. All rules that must reach the
+# LLM are embedded in the item guidances. Compliance = yes / (yes + no); not_applicable is
+# excluded from the denominator.
+
+scoring_unit: |
+  CLAIM is applied ONCE PER PAPER, not per model. Assess whether the PAPER reports each item
+  for its primary contribution, judging the paper as a whole. Do NOT score per model.
+  Multi-model/task: reporting, model, and training items are satisfied for the proposed/
+  primary model (baselines need not be documented); reference-standard and dataset items
+  (14-20, 35, 36) require every reference standard/dataset the primary result depends on;
+  performance items (28, 37, 38, 39) require the primary task(s) the paper claims.
+
+sections:
+  - title_abstract
+  - abstract
+  - introduction
+  - methods_study_design
+  - methods_data
+  - methods_reference_standard
+  - methods_data_partitions
+  - methods_testing_data
+  - methods_model
+  - methods_training
+  - methods_evaluation
+  - results_data
+  - results_performance
+  - discussion
+  - other_information
+
+items:
+  - id: "1"
+    text: "Identification as a study of AI methodology, specifying the category of technology used (e.g., deep learning)"
+    section: "title_abstract"
+    guidance: >
+      Yes: the title and/or abstract identifies the work as an AI/ML study and names the
+      technology category (e.g. 'deep learning', 'CNN', 'transformer') or a specific method
+      (e.g. 'U-Net'). No: neither title nor abstract signals AI/ML was used.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "2"
+    text: "Summary of study design, methods, results, and conclusions"
+    section: "abstract"
+    guidance: >
+      Judge the four elements named in the item: study design, methods, results, conclusions.
+      The listed extras (population, partitions, prospective/retrospective, statistics,
+      outcome, availability) are encouraged but not required - abstract word limits apply.
+      Yes: all four elements are conveyed, even briefly; if exactly one is missing, still yes.
+      No: two or more of the four are absent.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "3"
+    text: "Scientific and/or clinical background, including the intended use and role of the AI approach"
+    section: "introduction"
+    guidance: >
+      Yes: the introduction substantively addresses the study's background - the
+      clinical/scientific context and the purpose or role of the AI. No: essentially no
+      background or motivation is given.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "4"
+    text: "Study aims, objectives, and hypotheses (if not a data-driven approach)"
+    section: "introduction"
+    guidance: >
+      A formal a priori hypothesis is NOT required (CLAIM exempts data-driven /
+      method-proposal studies). Yes: the paper clearly states its aim or objective (the
+      specific clinical or technical goal). No: no clear aim, objective, or question is
+      stated.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "5"
+    text: "Prospective or retrospective study"
+    section: "methods_study_design"
+    guidance: >
+      Yes: the paper states whether data collection was prospective or retrospective;
+      describing the data as pre-existing or as a public/benchmark dataset counts. No: no
+      indication of prospective vs retrospective.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "6"
+    text: "Study goal"
+    section: "methods_study_design"
+    guidance: >
+      Yes: the paper states the study's goal or contribution type (e.g. model development,
+      feasibility, benchmarking, comparison); for classification, naming the intended clinical
+      use suffices. No: the goal is not identifiable.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "7"
+    text: "Data sources"
+    section: "methods_data"
+    guidance: >
+      Yes: the paper states where ALL its data came from - every dataset used (internal and
+      external, named public/benchmark datasets, named institution/cohort, or a described
+      private/synthetic source). Links and data-population alignment are optional. If multiple
+      datasets are used, each source must be identifiable. No: any data source is not
+      identifiable.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "8"
+    text: "Inclusion and exclusion criteria"
+    section: "methods_data"
+    guidance: >
+      Yes: the paper states the criteria determining which cases/images were included or
+      excluded. Not_applicable: inclusion/exclusion does not meaningfully apply - the entire
+      dataset is used with no case/image selection, e.g. a public/benchmark dataset used as-is
+      or whole-dataset segmentation. No: selection clearly occurred (a subset was used) but
+      the criteria are not stated.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "9"
+    text: "Data pre-processing"
+    section: "methods_data"
+    guidance: >
+      Yes: the paper describes the preprocessing applied (e.g. resizing, normalisation,
+      contrast adjustment, denoising, cropping), OR explicitly states none was applied.
+      Library/version detail is optional. No: no preprocessing is described.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "10"
+    text: "Selection of data subsets"
+    section: "methods_data"
+    guidance: >
+      Yes: the paper states whether subsets of the raw data were selected
+      (frames/images/ROIs/segments) and how, OR states the full data was used with no
+      selection. Not_applicable: a public/benchmark dataset is used as-is with its selection
+      already made (e.g. pre-extracted keyframes or pre-cropped ROIs) and the study adds no
+      selection of its own. No: the study performed its own subset selection (e.g. results on
+      cropped ROIs or selected frames, including further selection on top of a public dataset)
+      but does not describe how.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "11"
+    text: "De-identification methods"
+    section: "methods_data"
+    guidance: >
+      Yes: the paper describes de-identification, or states it used already-anonymised or
+      public data. Not_applicable: de-identification cannot apply to this study - purely
+      synthetic data, or a public/benchmark dataset distributed already anonymised where the
+      study handled no protected health information of its own. No: identifiable clinical/own
+      data was used but de-identification is not mentioned.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "12"
+    text: "How missing data were handled"
+    section: "methods_data"
+    guidance: >
+      Yes: the paper describes how missing data were handled, or states there were none.
+      Not_applicable: missing data cannot arise for this setup - e.g. a complete-image
+      segmentation/detection task on a curated or public dataset where 'missing data' has no
+      meaning, or no tabular/clinical variables are used. No: missing data plausibly occurred
+      (incomplete clinical variables, dropped acquisitions) but its handling is not described.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "13"
+    text: "Image acquisition protocol"
+    section: "methods_data"
+    guidance: >
+      Yes: the paper reports acquisition parameters (for XCA e.g. system/vendor, frame rate,
+      projection, radiation/contrast, resolution); some detail suffices. Not_applicable: the
+      study cannot know the protocol - a public/benchmark dataset that does not disclose
+      acquisition parameters and to which the study adds none of its own. No: own/clinical
+      data was used (protocol is knowable) but acquisition parameters are not reported. If
+      multiple datasets are used (e.g. internal and external), describing the primary dataset
+      the main results rely on is sufficient; a supplementary external/generalisation set need
+      not be separately described here.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "14"
+    text: "Definition of method(s) used to obtain reference standard"
+    section: "methods_reference_standard"
+    guidance: >
+      Strict item. Yes: a clear, replicable description of how the reference standard was
+      obtained (definitions/guidelines given to annotators). If the paper depends on more than
+      one reference standard (e.g. one task uses expert masks, another uses QCA), each must be
+      described. No: the reference standard is not adequately defined, or any required
+      standard is missing. Assess the paper's own contribution, not methods it only cites for
+      comparison.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "15"
+    text: "Rationale for choosing the reference standard"
+    section: "methods_reference_standard"
+    guidance: >
+      Yes: the paper gives any reason for choosing its reference standard. No: the reference
+      standard is only stated, with no rationale. If the paper depends on more than one
+      reference standard, this must hold for each.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "16"
+    text: "Source of reference standard annotations"
+    section: "methods_reference_standard"
+    guidance: >
+      Strict item. Yes: the source of the reference standard is clearly described - for human
+      annotation, BOTH who produced it AND their qualifications/expertise; for an objective or
+      automated standard (e.g. FFR, QCA, physics-based label), the method/source is clearly
+      described. A well-established standard (e.g. standard FFR, standard QCA) is self-evident
+      and counts as described. If the paper depends on more than one reference standard, the
+      source must be given for each. No: the source is not adequately described - e.g. 'images
+      were manually annotated' with no who/expertise, or a non-standard/custom objective
+      source (e.g. custom QCA software, an in-house automated pipeline) that is neither
+      established nor described. Not_applicable: a public/benchmark dataset with pre-existing
+      labels the study did not create and whose source it cannot describe.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "17"
+    text: "Annotation of test set"
+    section: "methods_reference_standard"
+    guidance: >
+      Yes: the annotation of the test/evaluation set is described - either separately, OR (the
+      common case) covered by the overall annotation process when the test set is a split of
+      the same labeled data described elsewhere. If the paper depends on more than one
+      reference standard, the test-set annotation for each must be described. No: the test set
+      was annotated but how is not described anywhere. Not_applicable: there is no test set
+      the study annotated - e.g. no held-out test (training/CV only), or an external/public
+      test set whose labels the study did not create.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "18"
+    text: "Measures of inter- and intra-rater variability of features described by the annotators"
+    section: "methods_reference_standard"
+    guidance: >
+      Yes: the paper reports a measure of inter- and/or intra-rater variability, OR describes
+      how annotator disagreements were resolved. If the paper depends on more than one
+      reference standard, this must hold for each. Not_applicable: rater variability cannot
+      exist - a single annotator, a public dataset with pre-existing labels the study did not
+      create, or a purely objective standard (FFR, QCA). No: multiple annotators created the
+      ground truth but no variability measure or resolution procedure is reported.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "19"
+    text: "How data were assigned to partitions"
+    section: "methods_data_partitions"
+    guidance: >
+      Strict item. Yes: the paper states how data were split (training/tuning/testing) AND the
+      proportions, OR clearly states that the predefined/established split of an open dataset
+      was used. No: the partitioning is not stated.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "20"
+    text: "Level at which partitions are disjoint"
+    section: "methods_data_partitions"
+    guidance: >
+      Strict item. Yes: the paper states the level at which partitions are disjoint (patient-,
+      series-, or image-level). No: the disjointness level is not stated (word limits do not
+      excuse a single sentence). Not_applicable: an open/benchmark dataset with a predefined
+      split is used and the disjointness level was set by the dataset, not the study, so the
+      study cannot state it.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "21"
+    text: "Intended sample size"
+    section: "methods_testing_data"
+    guidance: >
+      Yes: the paper reports the test-set size and how it was determined (a power/sample-size
+      justification, or a clear stated rationale). No: only a size is given with no basis, or
+      no size at all. Not_applicable: no separate test set exists to size - e.g.
+      cross-validation only, or an established public/benchmark split adopted as-is where the
+      study sets no sample size of its own.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "22"
+    text: "Detailed description of model"
+    section: "methods_model"
+    guidance: >
+      Yes: the model is described completely enough to reconstruct it (architecture,
+      inputs/outputs, key layers), or a published architecture is cited with all modifications
+      described. If the paper presents several competing models (a proposed model plus
+      baselines or comparison methods), assess only the proposed/primary model; baselines need
+      not be fully documented. If the paper uses a multi-stage pipeline where several models
+      are each a necessary stage of one system (e.g. segmentation, then refinement, then
+      detection), ALL stages must be described - describing only some is 'no'. No: the model
+      architecture (proposed model, or any pipeline stage) is not adequately described.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "23"
+    text: "Software libraries, frameworks, and packages"
+    section: "methods_model"
+    guidance: >
+      Yes: the paper names the software libraries/frameworks used (version numbers strengthen
+      but are not required). If the paper presents several competing models (proposed plus
+      baselines), assess only the proposed/primary model; if it uses a multi-stage pipeline
+      where several models are each a necessary stage, assess all stages. No: no
+      software/framework is named.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "24"
+    text: "Initialization of model parameters"
+    section: "methods_model"
+    guidance: >
+      Yes: the paper states how model parameters were initialised (random scheme, or source of
+      transfer-learning/pretrained weights). If the paper presents several competing models
+      (proposed plus baselines), assess only the proposed/primary model; if it uses a
+      multi-stage pipeline where several models are each a necessary stage, assess all stages.
+      No: initialisation is not stated. Not_applicable: there are no learned parameters to
+      initialise - a classical/non-ML method (thresholding, active contours, rule-based).
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "25"
+    text: "Details of training approach"
+    section: "methods_training"
+    guidance: >
+      Yes: the core training setup is reported (optimiser, learning rate, loss/objective
+      function, and augmentation); omission of a minor detail (e.g. exact search strategy) or
+      one core element is tolerated. If the paper presents several competing models (proposed
+      plus baselines), assess only the proposed/primary model; if it uses a multi-stage
+      pipeline where several models are each a necessary stage, assess all stages. No: the
+      core training configuration is absent or several core elements are missing.
+      Not_applicable: no training occurs - a classical/non-ML method or an off-the-shelf model
+      applied without training.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "26"
+    text: "Method of selecting the final model"
+    section: "methods_training"
+    guidance: >
+      Yes: the paper states how the final model was selected (the selection metric/criterion,
+      e.g. best validation Dice). If the paper presents several competing models (proposed
+      plus baselines), assess only the proposed/primary model; if it uses a multi-stage
+      pipeline where several models are each a necessary stage, assess all stages. No:
+      final-model selection is not described. Not_applicable: no selection step exists - a
+      single model was trained, or a classical/non-ML method is used.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "27"
+    text: "Ensembling techniques"
+    section: "methods_training"
+    guidance: >
+      Yes: an ensemble is used and its components and combination are described. If the paper
+      presents several competing models (proposed plus baselines), assess only the
+      proposed/primary model; if it uses a multi-stage pipeline where several models are each
+      a necessary stage, assess all stages. Not_applicable: no ensemble is used (a single
+      model). No: an ensemble is used but its components or combination are not described.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "28"
+    text: "Metrics of model performance"
+    section: "methods_evaluation"
+    guidance: >
+      Yes: the performance metrics are named and appropriate for the task. For standard
+      metrics (e.g. Dice, IoU, AUC, sensitivity/specificity, F1), naming them is sufficient -
+      their suitability is self-evident. For a non-standard or custom metric, a brief
+      justification of why it suits the task is required. If the paper addresses more than one
+      task, metrics must be described for each primary task the paper claims. No: metrics are
+      not named, or a custom metric is used with no justification.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "29"
+    text: "Statistical measures of significance and uncertainty"
+    section: "methods_evaluation"
+    guidance: >
+      Yes: the paper reports uncertainty of the performance metrics (SD, confidence intervals)
+      OR a statistical significance test. If the paper addresses more than one task, assess
+      each primary task the paper claims. No: point estimates only, with no uncertainty or
+      significance testing.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "30"
+    text: "Robustness or sensitivity analysis"
+    section: "methods_evaluation"
+    guidance: >
+      Yes: the paper reports a robustness or sensitivity analysis (e.g. to hyperparameters,
+      initial conditions, or data perturbations). If the paper presents several competing
+      models (proposed plus baselines), assess only the proposed/primary model; if it uses a
+      multi-stage pipeline where several models are each a necessary stage, assess all stages.
+      No: none is reported.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "31"
+    text: "Methods for explainability or interpretability"
+    section: "methods_evaluation"
+    guidance: >
+      Yes: an explainability/interpretability method is applied and described. If the paper
+      presents several competing models (proposed plus baselines), assess only the
+      proposed/primary model; if it uses a multi-stage pipeline where several models are each
+      a necessary stage, assess all stages. Not_applicable: interpretability is not part of
+      the study's aim and none is claimed (e.g. a pure segmentation-accuracy study). No:
+      interpretability is claimed or relevant but the method is not described.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "32"
+    text: "Evaluation on internal data"
+    section: "methods_evaluation"
+    guidance: >
+      Yes: the paper reports performance on internal (held-out or cross-validated) test data.
+      No: no internal evaluation is reported.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "33"
+    text: "Testing on external data"
+    section: "methods_evaluation"
+    guidance: >
+      Yes: external-test data is described, OR no external testing was done but the paper
+      explicitly notes and justifies this limitation. No: external testing is absent AND the
+      limitation is neither acknowledged nor justified.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "34"
+    text: "Clinical trial registration"
+    section: "methods_evaluation"
+    guidance: >
+      Yes: the study is registered in a trial registry (e.g. ClinicalTrials.gov, a WHO primary
+      registry). Not_applicable: not a clinical trial - the typical retrospective, technical,
+      or public-dataset study, which requires no registration. No: the study is a prospective
+      clinical trial but reports no registration.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "35"
+    text: "Numbers of patients or examinations included and excluded"
+    section: "results_data"
+    guidance: >
+      Yes: the paper reports the numbers of patients/examinations/images included and excluded
+      (a flow diagram or counts). No: these numbers are not reported. If multiple datasets are
+      used (e.g. internal and external), describing the primary dataset the main results rely
+      on is sufficient; a supplementary external/generalisation set need not be separately
+      described here.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "36"
+    text: "Demographic and clinical characteristics of cases in each partition"
+    section: "results_data"
+    guidance: >
+      Yes: the paper reports demographic/clinical characteristics of the cases (e.g. age, sex
+      distribution). Not_applicable: no demographic information is available and none is
+      addable - a public/benchmark or technical image dataset distributed without patient
+      metadata. No: clinical/own data was used (demographics are knowable) but demographics
+      are not reported. If multiple datasets are used (e.g. internal and external), describing
+      the primary dataset the main results rely on is sufficient; a supplementary
+      external/generalisation set need not be separately described here.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "37"
+    text: "Performance metrics and measures of statistical uncertainty"
+    section: "results_performance"
+    guidance: >
+      Yes: the paper reports the final model's performance on its test data. If the paper
+      addresses more than one task, report performance for each primary task the paper claims.
+      No: performance results are not reported.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "38"
+    text: "Estimates of diagnostic performance and their precision"
+    section: "results_performance"
+    guidance: >
+      Yes: for classification/diagnostic tasks, the paper reports accuracy estimates with
+      uncertainty (e.g. CIs, ROC, calibration). If the paper addresses more than one
+      diagnostic task, assess each primary diagnostic task it claims. Not_applicable: not a
+      diagnostic-accuracy task - e.g. pure segmentation, image processing, or reconstruction,
+      where diagnostic-accuracy estimates do not apply. No: a diagnostic/classification task
+      reported without any precision or uncertainty estimate.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "39"
+    text: "Failure analysis of incorrect results"
+    section: "results_performance"
+    guidance: >
+      Yes: the paper provides a failure/error analysis (e.g. confusion matrix, examples of
+      incorrect cases). If the paper addresses more than one task, a failure analysis for the
+      primary task(s) suffices. No: no analysis of incorrect results is given.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "40"
+    text: "Study limitations"
+    section: "discussion"
+    guidance: >
+      Yes: the paper states study limitations. No: no limitations are discussed.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "41"
+    text: "Implications for practice, including intended use and/or clinical role"
+    section: "discussion"
+    guidance: >
+      Yes: the paper discusses implications for practice - intended use, clinical role, or
+      impact. No: no practical implications are discussed.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "42"
+    text: "Provide a reference to the full study protocol or to additional technical details"
+    section: "other_information"
+    guidance: >
+      Yes: the paper references a full protocol or additional technical details (supplement,
+      code repository, or protocol citation). Not_applicable: the manuscript is fully
+      self-contained, with no additional protocol or technical material beyond it. No:
+      additional detail is clearly needed or referenced but is not accessible.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "43"
+    text: "Statement about the availability of software, trained model, and/or data"
+    section: "other_information"
+    guidance: >
+      Yes: the paper states the availability of software, model, and/or data (including an
+      explicit 'not available' or the access conditions). No: availability is not addressed at
+      all.
+    response_options: ["yes", "no", "not_applicable"]
+
+  - id: "44"
+    text: "Sources of funding and other support; role of funders"
+    section: "other_information"
+    guidance: >
+      Yes: the paper states funding sources and the role of funders (including an explicit 'no
+      funding'). No: funding/support is not addressed.
+    response_options: ["yes", "no", "not_applicable"]
