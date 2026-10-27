@@ -13,8 +13,9 @@ structured database. It is the analysis companion to the extraction tool
 | Path | What it is |
 |------|------------|
 | `xca_dl_review.db` | Structured database for all 196 included studies (SQLite), reduced to exactly what the scripts need to build the tables and figures. Three tables: `papers` (id, ref_number, pub_type, year, title, authors, doi), `extractions` (paper_id, field_name, value), `checklist_results` (paper_id, checklist_name, item_id, result). Full text, abstracts, figure captions, evidence quotes, provenance flags, file paths and author contact details have all been removed (copyright and data protection). |
-| `xca_dl_review_references.bib` | Bibliography for the 196 included studies (used to build the reference list). |
-| `scripts/` | Table and figure generators (`01_*`-`06_*`), shared helpers (`common.py`), and configuration (`review.toml`). |
+| `xca_dl_review_references.bib` | Bibliography for the 196 included studies (used to build the reference list). Each entry carries two provenance fields written by `07_search_sensitivity.py --annotate`: `xcaroute` (database, citation, both) and `xcablock3` (present, absent, untestable). |
+| `gold_standard_ratings.xlsx` | Human ratings of a random 10% subsample (20 studies) on 18 CLAIM 2024 items and the full QUADAS-2 by two authors (clinical, ML), used by `12_tab_s13_gold.py`. One row per rating; no free text. |
+| `scripts/` | Table and figure generators (`01_*`-`06_*` for the submitted version, `07_*`-`12_*` added in revision), shared helpers (`common.py`), and configuration (`review.toml`). |
 | `scripts/paradigm_labels.json` | Precomputed supervision-type (self-/semi-/weakly-/unsupervised) labels used by `03_tab_s2.py`, since that classification originally derived from full text (now removed). |
 | `results/` | Generated output (git-ignored, not committed) -- created by running the scripts: `results/tables/` (`.docx`) and `results/figures/` (`.png`/`.pdf`/`.svg`). Regenerate at any time. |
 | `papermole_config/` | The exact PaperMole configuration that drove extraction and quality appraisal for this review: the XCA extraction schema, the CLAIM 2024 and QUADAS-2 checklists, and the run settings. See below. |
@@ -48,6 +49,14 @@ python3 01_tab_1.py            # Table 1
 python3 03_tab_s2.py           # Table S2
 python3 05_fig4_quadas.py      # Figure 4
 # ...run any 0X_tab_*.py / 0X_fig_*.py generator
+
+# Added in revision (v1.1.0)
+python3 07_search_sensitivity.py   # Supplementary Methods M3: search sensitivity (console)
+python3 08_tab_s9_criteria.py      # Table S9: criterion definitions
+python3 09_tab_s11_venue.py        # Table S11: journal vs conference (Holm-adjusted)
+python3 10_trends.py               # trend tests and weighting sensitivity (console)
+python3 11_tab_s12_sample.py       # Table S12: validation samples
+python3 12_tab_s13_gold.py         # Table S13: human gold-standard comparison
 ```
 
 Scripts are numbered by manuscript order. `0X_tab_*.py` write `.docx` files to
@@ -77,6 +86,16 @@ to this paper:
 To re-run extraction with the published tool, install PaperMole and point it at these
 files (schema via `extraction.schema_file` or `--schema`; checklists via `--checklist`).
 See the PaperMole repository for the tool's own usage.
+
+## Changes in v1.1.0 (revision)
+
+- Corrected the "two or more annotators" scorecard criterion: the v1.0.0 scripts did
+  not count the `>=3` bucket of `annotator_count`, so 25 instead of 56 studies met it.
+  Figure 3B, Table S7 and the derived summary statistics changed (maximum score 11,
+  14 studies at 9 or higher); the main-text figure (56, 29%) was already correct.
+- Removed the ≥6/15 and ≥10/15 cut-points from all outputs.
+- Added scripts 07 to 12 and the gold-standard ratings file (see above).
+- Two chapter DOIs in the bibliography corrected (Springer LNCS volume DOI to chapter DOI).
 
 ## Data and code availability
 

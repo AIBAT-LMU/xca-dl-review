@@ -117,7 +117,7 @@ for p in papers:
          val(pid, "sex_reported") == "y",
          val(pid, "patient_presentation") not in NR,
          any_like(pid, "annotator_expertise__%", exc=list(NR) + ["unclear"]),
-         any_like(pid, "annotator_count__%", pos=[str(n) for n in range(2, 30)])]
+         any_like(pid, "annotator_count__%", pos=[str(n) for n in range(2, 30)] + [">=3"])]
     score[pid] = sum(b)
 sv = list(score.values())
 ext = {p.paper_id for p in papers if val(p.paper_id, "external_validation_used") == "y"}
@@ -126,9 +126,7 @@ print(f"\nFeasibility Σ (0-15): range {min(sv)}-{max(sv)}  mean {statistics.mea
       f"met-all-15: {sum(v==15 for v in sv)}")
 for lo, hi in [(2016, 2019), (2020, 2022), (2023, 2026)]:
     ids = [p for p in score if lo <= year[p] <= hi]
-    ge6 = sum(score[p] >= 6 for p in ids)
-    print(f"  {lo}-{hi}: mean {statistics.mean(score[p] for p in ids):.1f}  "
-          f"≥6/15 {ge6} ({round(100*ge6/len(ids))}%)")
+    print(f"  {lo}-{hi}: mean {statistics.mean(score[p] for p in ids):.1f}")
 ge9 = sorted((p for p in score if score[p] >= 9), key=lambda p: ref_of[p])
 print(f"  Σ≥9: {len(ge9)} studies -> refs {[ref_of[p] for p in ge9]}")
 print(f"  external validation {len(ext)}, code {len(code)}, both {len(ext & code)}")

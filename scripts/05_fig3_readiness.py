@@ -103,7 +103,7 @@ domains["Study\nDesign"] = OrderedDict([
     ("Patient presentation\nreported", frac(lambda p: val(p, "patient_presentation") not in NR))])
 domains["Annotation\nQuality"] = OrderedDict([
     ("Annotator expertise\ndescribed", frac(lambda p: any_like(p, "annotator_expertise__%", exc=list(NR) + ["unclear"]))),
-    ("≥2 annotators", frac(lambda p: any_like(p, "annotator_count__%", pos=[str(n) for n in range(2, 30)])))])
+    ("≥2 annotators", frac(lambda p: any_like(p, "annotator_count__%", pos=[str(n) for n in range(2, 30)] + [">=3"])))])
 domains["Reporting\nQuality"] = OrderedDict(zip(CLAIM_SECTIONS.keys(), [round(v, 1) for v in sec_yes]))
 conn.close()
 

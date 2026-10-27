@@ -29,7 +29,13 @@ partial year 2026):
   Object detector   architecture_family == Object detector
     YOLO            a primary model named 'YOLO...'
   GNN               base_architecture == GNN/GCN
+
+Revision: each row also carries a trend test across publication year (Cochran-
+Armitage, computed as the correlation-based trend statistic z = r * sqrt(n) with
+a two-sided normal p-value), so the "shifted over time" statements in the Results
+are tested rather than asserted.
 """
+import math
 from collections import defaultdict
 
 import common as C
@@ -70,9 +76,22 @@ CRITERIA = [
     ("GNN/GCN", lambda p: "GNN/GCN" in ba[p]),
 ]
 
+def trend(flags, years):
+    """Cochran-Armitage trend test on year (z = r * sqrt(n)); returns (z, p)."""
+    n = len(flags)
+    mx, my = sum(flags) / n, sum(years) / n
+    sxy = sum((f - mx) * (y - my) for f, y in zip(flags, years))
+    sxx = sum((f - mx) ** 2 for f in flags)
+    syy = sum((y - my) ** 2 for y in years)
+    if sxx == 0 or syy == 0:
+        return float("nan"), float("nan")
+    z = sxy / math.sqrt(sxx * syy) * math.sqrt(n)
+    return z, math.erfc(abs(z) / math.sqrt(2))
+
+
 print(f"Architecture composition by period (studies; % of period)")
 hdr = "  ".join(f"{lo}-{hi}" for lo, hi in PERIODS)
-print(f"{'':32s}{hdr}")
+print(f"{'':32s}{hdr}{'trend z':>10s}{'p':>9s}")
 sizes = [sum(1 for p in papers if lo <= year[p.paper_id] <= hi) for lo, hi in PERIODS]
 print(f"{'n studies':32s}" + "  ".join(f"{s:^9d}" for s in sizes))
 for label, pred in CRITERIA:
@@ -80,4 +99,6 @@ for label, pred in CRITERIA:
     for (lo, hi), tot in zip(PERIODS, sizes):
         hit = sum(1 for p in papers if lo <= year[p.paper_id] <= hi and pred(p.paper_id))
         cells.append(f"{hit} ({round(100*hit/tot) if tot else 0}%)")
-    print(f"{label:32s}" + "  ".join(f"{c:^9s}" for c in cells))
+    z, pv = trend([1.0 if pred(p.paper_id) else 0.0 for p in papers],
+                  [year[p.paper_id] for p in papers])
+    print(f"{label:32s}" + "  ".join(f"{c:^9s}" for c in cells) + f"{z:10.2f}{pv:9.4f}")
