@@ -128,7 +128,7 @@ for x, letter in ((0.015, "a"), (0.40, "b")):
 C.ensure_dirs()
 stem = os.path.join(C.OUT_FIGURES, "Fig2_application_domains")
 # bbox_inches="tight" would re-crop and undo the figure-coordinate alignment.
-for ext in ("png", "pdf", "svg"):
+for ext in ("png", "pdf", "svg", "eps"):
     fig.savefig(f"{stem}.{ext}", facecolor="white")
 plt.close()
-print(f"\nSaved \u2192 {stem}.png / .pdf / .svg")
+print(f"\nSaved \u2192 {stem}.png / .pdf / .svg / .eps")

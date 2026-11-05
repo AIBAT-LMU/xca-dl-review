@@ -29,7 +29,7 @@ authors:
   - family-names: Vieluf
     given-names: Solveig
     affiliation: "Department of Medicine I, LMU University Hospital, LMU Medizin, Ludwig-Maximilians-Universität München, Munich, Germany; DZHK (German Centre for Cardiovascular Research), partner site Munich Heart Alliance, Munich, Germany; relAI - Konrad Zuse School of Excellence in Reliable AI, Munich, Germany"
-version: 1.0.0
+version: 1.1.0
 date-released: 2026-08-05
 license:
   - MIT

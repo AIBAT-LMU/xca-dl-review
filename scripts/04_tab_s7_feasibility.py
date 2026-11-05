@@ -85,7 +85,7 @@ def booleans(pid):
         val(pid, "sex_reported") == "y",                                  # Sx
         val(pid, "patient_presentation") not in NR,                       # Pr
         any_like(pid, "annotator_expertise__%", exc=list(NR) + ["unclear"]),  # Ex
-        any_like(pid, "annotator_count__%", pos=[str(n) for n in range(2, 30)]),  # >=2
+        any_like(pid, "annotator_count__%", pos=[str(n) for n in range(2, 30)] + [">=3"]),  # >=2
     ]
 
 
@@ -146,7 +146,7 @@ studies.sort(key=lambda s: (-s["sigma"], -s["claim"], s["ref"]))
 sv = [s["sigma"] for s in studies]
 print(f"Table S7: feasibility scorecard (N={N})")
 print(f"  Sigma range {min(sv)}-{max(sv)}  mean {sum(sv)/N:.1f}  "
-      f">=6: {sum(v >= 6 for v in sv)}  >=10: {sum(v >= 10 for v in sv)}")
+      f"median {sorted(sv)[N // 2]}")
 
 # ── DOCX ──
 C.ensure_dirs()
