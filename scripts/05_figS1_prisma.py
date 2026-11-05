@@ -133,5 +133,5 @@ arrow(A2, Y_ASS - 0.43, A1 + 3.5 / 2, Y_INC, elbow=True)  # arm2 assessed -> inc
 C.ensure_dirs()
 for ext in ("png", "pdf"):
     fig.savefig(os.path.join(C.OUT_FIGURES, f"FigS1_PRISMA.{ext}"),
-                dpi=200, bbox_inches="tight", facecolor="white")
+                dpi=600, bbox_inches="tight", facecolor="white")
 print("Saved FigS1_PRISMA.png / .pdf  (n=196; databases 90 + other methods 106)")

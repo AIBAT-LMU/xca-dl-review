@@ -21,9 +21,11 @@ import numpy as np
 
 import common as C
 
-plt.rcParams.update({"font.family": "sans-serif", "font.size": 15,
-                     "axes.titlesize": 17, "axes.titleweight": "bold",
-                     "axes.labelsize": 15, "savefig.dpi": 300, "savefig.bbox": "tight"})
+# Drawn at final print size (18 cm wide, npj double-column) so the point sizes
+# below are the sizes on the printed A4 page -- no downscaling in the manuscript.
+plt.rcParams.update({"font.family": "sans-serif", "font.size": 8,
+                     "axes.titlesize": 9, "axes.titleweight": "bold",
+                     "axes.labelsize": 8, "savefig.dpi": 600, "savefig.bbox": "tight"})
 
 D_COLORS = {"Validation &\nGeneralizability": "#1E88E5",
             "Reproducibility &\nTransparency": "#43A047",
@@ -108,39 +110,40 @@ domains["Reporting\nQuality"] = OrderedDict(zip(CLAIM_SECTIONS.keys(), [round(v,
 conn.close()
 
 # ── Figure ──
-fig = plt.figure(figsize=(20, 14))
-gs = gridspec.GridSpec(1, 2, width_ratios=[1.05, 1], wspace=0.40)
+fig = plt.figure(figsize=(7.09, 6.3))        # 18 cm wide = npj full text width
+gs = gridspec.GridSpec(1, 2, width_ratios=[1.05, 1], wspace=0.52)
 
 ax_a = fig.add_subplot(gs[0])
 sec_labels = [f"{n}\n(Items {s}–{e})" if s != e else f"{n}\n(Item {s})"
               for n, (s, e) in CLAIM_SECTIONS.items()]
 y_pos = np.arange(len(sec_labels))
-ax_a.set_title("CLAIM 2024 Checklist Compliance", fontsize=17, fontstyle="italic",
-               loc="left", pad=10, color="#333333")
+ax_a.set_title("CLAIM 2024 Checklist Compliance", fontsize=9, fontstyle="italic",
+               loc="left", pad=6, color="#333333")
 ax_a.barh(y_pos, sec_yes, color=COL_YES, edgecolor="white", height=0.7, label="Reported")
 ax_a.barh(y_pos, sec_no, left=sec_yes,
           color=COL_NO, edgecolor="white", height=0.7, label="Not reported")
 for i, (yp, pp) in enumerate(zip(sec_yes, sec_part)):
     comb = yp + pp
     if yp >= 10:
-        ax_a.text(yp / 2, i, f"{yp:.0f}%", ha="center", va="center", fontsize=13,
+        ax_a.text(yp / 2, i, f"{yp:.0f}%", ha="center", va="center", fontsize=7,
                   color="white", fontweight="bold")
     elif comb >= 10:
-        ax_a.text(comb / 2, i, f"{comb:.0f}%", ha="center", va="center", fontsize=13,
+        ax_a.text(comb / 2, i, f"{comb:.0f}%", ha="center", va="center", fontsize=7,
                   color="white", fontweight="bold")
     else:
-        ax_a.text(comb + 2, i, f"{comb:.0f}%", ha="left", va="center", fontsize=13, color="#444")
+        ax_a.text(comb + 2, i, f"{comb:.0f}%", ha="left", va="center", fontsize=7, color="#444")
 ax_a.set_yticks(y_pos)
-ax_a.set_yticklabels(sec_labels, fontsize=14, linespacing=1.2)
+ax_a.set_yticklabels(sec_labels, fontsize=7.5, linespacing=1.2)
 ax_a.invert_yaxis()
 ax_a.set_xlim(0, 100)
-ax_a.set_xlabel("Compliance (%)", fontsize=15)
+ax_a.set_xlabel("Compliance (%)", fontsize=8)
 ax_a.spines[["top", "right"]].set_visible(False)
-ax_a.legend(loc="lower right", fontsize=13, frameon=True, framealpha=0.92, edgecolor="#ccc")
+ax_a.legend(loc="upper center", bbox_to_anchor=(0.5, -0.075), ncol=2, fontsize=7,
+            frameon=False, columnspacing=1.4, handletextpad=0.6)
 
 ax_b = fig.add_subplot(gs[1])
-ax_b.set_title("Translational Feasibility Scorecard", fontsize=17, fontstyle="italic",
-               loc="left", pad=10, color="#333333")
+ax_b.set_title("Translational Feasibility Scorecard", fontsize=9, fontstyle="italic",
+               loc="left", pad=6, color="#333333")
 all_labels, all_values, all_colors = [], [], []
 legend_patches = []
 for dom, metrics in domains.items():
@@ -167,26 +170,26 @@ for di, (dom, metrics) in enumerate(doms):
     dividers.append(cur - 0.4)
 y_pos_b = np.array(y_pos_b)
 for xr in (25, 50, 75):
-    ax_b.axvline(xr, color="#e8e8e8", lw=1.0, zorder=0)
-ax_b.hlines(y_pos_b, 0, all_values, colors=all_colors, linewidth=3.2, alpha=0.8)
-ax_b.scatter(all_values, y_pos_b, c=all_colors, s=150, zorder=5, edgecolors="white", linewidths=1.4)
+    ax_b.axvline(xr, color="#e8e8e8", lw=0.6, zorder=0)
+ax_b.hlines(y_pos_b, 0, all_values, colors=all_colors, linewidth=1.8, alpha=0.8)
+ax_b.scatter(all_values, y_pos_b, c=all_colors, s=38, zorder=5, edgecolors="white", linewidths=0.8)
 for v, yp in zip(all_values, y_pos_b):
-    ax_b.text(v + 2.5, yp, f"{v:.0f}%", va="center", ha="left", fontsize=14,
-              fontweight="semibold", color="#333")
+    ax_b.text(v + 2.5, yp, f"{v:.0f}%", va="center", ha="left", fontsize=7,
+              fontweight="bold", color="#333")
 for dy in dividers[:-1]:
-    ax_b.axhline(dy, color="#c0c0c0", lw=1.0, ls="--")
-ax_b.legend(handles=legend_patches, loc="upper right", fontsize=13, frameon=True,
-            framealpha=0.93, edgecolor="#ccc", title="Domain", title_fontsize=14,
-            handlelength=1.2, handleheight=1.2, labelspacing=0.55)
+    ax_b.axhline(dy, color="#c0c0c0", lw=0.6, ls="--")
+ax_b.legend(handles=legend_patches, loc="upper center", bbox_to_anchor=(0.5, -0.075),
+            ncol=2, fontsize=6.5, frameon=False, handlelength=1.2, handleheight=1.2,
+            labelspacing=0.45, columnspacing=1.2, handletextpad=0.6)
 ax_b.set_yticks(y_pos_b)
-ax_b.set_yticklabels(all_labels, fontsize=14)
+ax_b.set_yticklabels(all_labels, fontsize=7, linespacing=1.05)
 ax_b.invert_yaxis()
 ax_b.set_xlim(0, 100)
-ax_b.set_xlabel("Studies (%)", fontsize=15)
+ax_b.set_xlabel("Studies (%)", fontsize=8)
 ax_b.spines[["top", "right"]].set_visible(False)
-ax_b.tick_params(axis="y", pad=6)
+ax_b.tick_params(axis="y", pad=3)
 for ax, lab in ((ax_a, "a"), (ax_b, "b")):
-    ax.text(-0.06, 1.04, lab, transform=ax.transAxes, fontsize=22, fontweight="bold",
+    ax.text(-0.06, 1.04, lab, transform=ax.transAxes, fontsize=11, fontweight="bold",
             va="bottom", ha="left", color="#111")
 
 C.ensure_dirs()

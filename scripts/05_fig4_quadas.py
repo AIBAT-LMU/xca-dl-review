@@ -84,5 +84,5 @@ plt.tight_layout()
 C.ensure_dirs()
 for ext in ("png", "pdf"):
     fig.savefig(os.path.join(C.OUT_FIGURES, f"Fig4_QUADAS2.{ext}"),
-                dpi=200, bbox_inches="tight")
+                dpi=600, bbox_inches="tight")
 print("Saved Fig4_QUADAS2.png / .pdf")
