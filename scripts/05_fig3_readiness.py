@@ -25,7 +25,8 @@ import common as C
 # below are the sizes on the printed A4 page -- no downscaling in the manuscript.
 plt.rcParams.update({"font.family": "sans-serif", "font.size": 8,
                      "axes.titlesize": 9, "axes.titleweight": "bold",
-                     "axes.labelsize": 8, "savefig.dpi": 600, "savefig.bbox": "tight"})
+                     "axes.labelsize": 8, "savefig.dpi": 600, "savefig.bbox": "tight",
+                     "pdf.fonttype": 42, "ps.fonttype": 42})  # embed real fonts
 
 D_COLORS = {"Validation &\nGeneralizability": "#1E88E5",
             "Reproducibility &\nTransparency": "#43A047",
@@ -89,7 +90,7 @@ domains = OrderedDict()
 domains["Validation &\nGeneralizability"] = OrderedDict([
     ("External validation", frac(lambda p: val(p, "external_validation_used") == "y")),
     ("Multi-center data", frac(lambda p: val(p, "multi_center") == "multi-center")),
-    ("Prospective validation", frac(lambda p: val(p, "prospective_validation") == "y"))])
+    ("Prospective\nvalidation", frac(lambda p: val(p, "prospective_validation") == "y"))])
 domains["Reproducibility &\nTransparency"] = OrderedDict([
     ("Code available", frac(lambda p: val(p, "code_availability") in ("y", "partly"))),
     ("Open dataset", frac(lambda p: any_like(p, "dataset_accessibility__%", pos=["open"]))),
@@ -99,7 +100,7 @@ domains["Workflow\nIntegration"] = OrderedDict([
     ("Real-time capability\ndemonstrated", frac(lambda p: val(p, "real_time_capability") == "y")),
     ("Inference time\nreported", frac(lambda p: any_like(p, "inference_time_reported__%", pos=["y"])))])
 domains["Study\nDesign"] = OrderedDict([
-    ("Target vessel specified", frac(lambda p: val(p, "target_vessel") not in NR)),
+    ("Target vessel\nspecified", frac(lambda p: val(p, "target_vessel") not in NR)),
     ("Age reported", frac(lambda p: val(p, "age_reported") == "y")),
     ("Sex reported", frac(lambda p: val(p, "sex_reported") == "y")),
     ("Patient presentation\nreported", frac(lambda p: val(p, "patient_presentation") not in NR))])
@@ -111,7 +112,7 @@ conn.close()
 
 # ── Figure ──
 fig = plt.figure(figsize=(7.09, 6.3))        # 18 cm wide = npj full text width
-gs = gridspec.GridSpec(1, 2, width_ratios=[1.05, 1], wspace=0.52)
+gs = gridspec.GridSpec(1, 2, width_ratios=[1.05, 1], wspace=0.60)
 
 ax_a = fig.add_subplot(gs[0])
 sec_labels = [f"{n}\n(Items {s}–{e})" if s != e else f"{n}\n(Item {s})"
@@ -149,7 +150,7 @@ legend_patches = []
 for dom, metrics in domains.items():
     col = D_COLORS[dom]
     if dom == "Reporting\nQuality":
-        all_labels.append("CLAIM compliance\n(mean across 11 sections)")
+        all_labels.append("CLAIM compliance\n(mean across\n11 sections)")
         all_values.append(round(np.mean(list(metrics.values())), 1))
         all_colors.append(col)
     else:
@@ -171,7 +172,11 @@ for di, (dom, metrics) in enumerate(doms):
 y_pos_b = np.array(y_pos_b)
 for xr in (25, 50, 75):
     ax_b.axvline(xr, color="#e8e8e8", lw=0.6, zorder=0)
-ax_b.hlines(y_pos_b, 0, all_values, colors=all_colors, linewidth=1.8, alpha=0.8)
+# Alpha baked into the color (blend with white) -- the EPS backend has no
+# transparency support, and this keeps PNG/PDF/EPS output identical.
+import matplotlib.colors as mcolors
+stem_cols = [tuple(1 - 0.8 * (1 - c) for c in mcolors.to_rgb(col)) for col in all_colors]
+ax_b.hlines(y_pos_b, 0, all_values, colors=stem_cols, linewidth=1.8)
 ax_b.scatter(all_values, y_pos_b, c=all_colors, s=38, zorder=5, edgecolors="white", linewidths=0.8)
 for v, yp in zip(all_values, y_pos_b):
     ax_b.text(v + 2.5, yp, f"{v:.0f}%", va="center", ha="left", fontsize=7,
@@ -193,7 +198,7 @@ for ax, lab in ((ax_a, "a"), (ax_b, "b")):
             va="bottom", ha="left", color="#111")
 
 C.ensure_dirs()
-for ext in ("png", "pdf"):
+for ext in ("png", "pdf", "eps"):
     plt.savefig(os.path.join(C.OUT_FIGURES, f"Fig3_readiness.{ext}"),
                 bbox_inches="tight", facecolor="white")
 print(f"Saved Fig3_readiness  (CLAIM median {claim_med:.0f}%, range {claim_min:.0f}-{claim_max:.0f}%)")

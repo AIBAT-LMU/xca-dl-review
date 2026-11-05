@@ -17,7 +17,8 @@ import matplotlib.pyplot as plt
 import common as C
 
 plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 11,
-                     "axes.spines.top": False, "axes.spines.right": False})
+                     "axes.spines.top": False, "axes.spines.right": False,
+                     "pdf.fonttype": 42, "ps.fonttype": 42})  # embed real fonts
 LOW, UNC, HIGH = "#2E8B6F", "#E7C24B", "#C0483B"
 
 conn = C.connect()
@@ -82,7 +83,7 @@ ax.text(101, 1.0, "Applicability", rotation=90, va="center", fontsize=9,
 ax.legend(ncol=3, loc="upper center", bbox_to_anchor=(0.5, -0.13), frameon=False)
 plt.tight_layout()
 C.ensure_dirs()
-for ext in ("png", "pdf"):
+for ext in ("png", "pdf", "eps"):
     fig.savefig(os.path.join(C.OUT_FIGURES, f"Fig4_QUADAS2.{ext}"),
                 dpi=600, bbox_inches="tight")
-print("Saved Fig4_QUADAS2.png / .pdf")
+print("Saved Fig4_QUADAS2.png / .pdf / .eps")
