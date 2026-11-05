@@ -3,7 +3,7 @@
 01_tab_1.py
 Table 1 - Summary characteristics of included studies
 
-Systematic Review: "Toward clinical-grade deep learning in coronary angiography"
+Systematic Review: "Deep learning for X-ray coronary angiography"
 
 Input:  xca_dl_review.db, xca_dl_review_references.bib
 Output: results/tables/Table1_characteristics.docx

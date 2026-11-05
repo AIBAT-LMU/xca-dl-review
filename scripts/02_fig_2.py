@@ -3,7 +3,7 @@
 02_fig_2.py
 Figure 2 - Application domains and task structure
 
-Systematic Review: "Toward clinical-grade deep learning in coronary angiography"
+Systematic Review: "Deep learning for X-ray coronary angiography"
 
 Input:  xca_dl_review.db
 Output: results/figures/Fig2_application_domains.png / .pdf

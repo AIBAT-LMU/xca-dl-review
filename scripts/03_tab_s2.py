@@ -3,7 +3,7 @@
 03_tab_s2.py
 Table S2 - Model architectures and domain-specific adaptations
 
-Systematic Review: "Toward clinical-grade deep learning in coronary angiography"
+Systematic Review: "Deep learning for X-ray coronary angiography"
 
 Input:  xca_dl_review.db
 Output: results/tables/TableS2_architectures.docx

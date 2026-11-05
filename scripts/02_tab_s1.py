@@ -3,7 +3,7 @@
 02_tab_s1.py
 Table S1 - Application domains and reference lists
 
-Systematic Review: "Toward clinical-grade deep learning in coronary angiography"
+Systematic Review: "Deep learning for X-ray coronary angiography"
 
 Input:  xca_dl_review.db
 Output: results/tables/TableS1_applications.docx

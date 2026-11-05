@@ -3,8 +3,9 @@ message: >-
   If you use this dataset or the analysis code, please cite the article below.
   When citing the dataset directly, please also cite the archived Zenodo record.
 title: >-
-  Reproducible analysis and structured dataset for "Toward clinical-grade deep
-  learning in coronary angiography: a systematic review"
+  Reproducible analysis and structured dataset for "Deep learning for X-ray
+  coronary angiography: a systematic review of methodological quality and
+  translational readiness"
 type: dataset
 authors:
   - family-names: Goelz
@@ -37,7 +38,7 @@ license:
 repository-code: "https://github.com/AIBAT-LMU/xca-dl-review"
 preferred-citation:
   type: article
-  title: "Toward clinical-grade deep learning in coronary angiography: a systematic review"
+  title: "Deep learning for X-ray coronary angiography: a systematic review of methodological quality and translational readiness"
   year: 2026
   notes: "Manuscript submitted; journal and DOI to be added on acceptance."
   authors:

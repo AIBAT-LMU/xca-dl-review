@@ -1,8 +1,8 @@
 # Reproducible analysis -- deep learning in X-ray coronary angiography
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21808800.svg)](https://doi.org/10.5281/zenodo.21808800)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21808799.svg)](https://doi.org/10.5281/zenodo.21808799)
 
 Analysis code and structured data for the systematic review
-**"Toward clinical-grade deep learning in coronary angiography: a systematic review."**
+**"Deep learning for X-ray coronary angiography: a systematic review of methodological quality and translational readiness."**
 
 This repository regenerates every table and figure in the manuscript from a single
 structured database. It is the analysis companion to the extraction tool

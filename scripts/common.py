@@ -2,7 +2,8 @@
 """
 common.py
 Shared utilities for the analysis scripts of the systematic review
-"Toward clinical-grade deep learning in coronary angiography".
+"Deep learning for X-ray coronary angiography: a systematic review of
+methodological quality and translational readiness".
 
 Provides:
   * paths (overridable via environment variables)
